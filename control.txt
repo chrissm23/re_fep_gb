@@ -1,0 +1,10 @@
+res=34
+resname=VAL
+chains=all
+function_GB=linear
+function_ele=linear
+function_Rlj=linear
+function_epsilonlj=linear
+windows=($(seq 0.0 0.05 1.0))
+windows+=()
+windows=($(printf "%s\n" "${windows[@]}" | sort -n))
