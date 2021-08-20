@@ -1,5 +1,5 @@
-res=34
-resname=VAL
+res_pos=34
+res_mut=VAL
 chains=all
 function_GB=linear
 function_ele=linear
