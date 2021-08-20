@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# Generate .parm7 and .rst7 files from structure
+#
+
+tleap=$AMBERHOME/bin/tleap
+
+$tleap -f - <<_EOF
+
+# Load force fields
+source leaprc.protein.ff14SBonlysc
+
+# Load PDB structure
+ab = loadpdb ./%pdb_name%.pdb
+
+# Create .parm7 and .rst7 files
+saveamberparm ab %name_structure%.parm7 %name_structure%.rst7
+
+quit
+_EOF
