@@ -38,4 +38,8 @@ class MutantReGbFe:
     }
     
     def __init__(self) -> None:
-        sdf
+        self.residue_position = None
+        self.residue_mutation = None
+        self.chains = None
+        self.functions = None
+        self.windows = None

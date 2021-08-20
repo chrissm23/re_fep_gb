@@ -1,10 +1,11 @@
-from biopandas.pdb import PandasPdb
 import numpy as np
 import pandas as pd
-import fileinput
-from shutil import copyfile
 import os
 import subprocess
+import fileinput
+import shutil
+
+from biopandas.pdb import PandasPdb
 
 """
 Collection of functions to read necessary input provided and calculate information required about the specific structure
