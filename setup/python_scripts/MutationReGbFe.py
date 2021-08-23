@@ -6,7 +6,7 @@ from shutil import copyfile
 import os
 import subprocess
 
-class MutantReGbFe:
+class MutationReGbFe:
     """Class with required information from structure and mutation as well as methods to calculate data to be filled into the templates for RE-FEP-GB"""
     chain_to_number = {
         1: "A",
@@ -37,9 +37,11 @@ class MutantReGbFe:
         26: "Z"
     }
     
-    def __init__(self) -> None:
-        self.residue_position = None
-        self.residue_mutation = None
-        self.chains = None
-        self.functions = None
-        self.windows = None
+    def __init__(self, control_dict, wt_structure, mt_structure) -> None:
+        self.residue_position = control_dict['residue_position']
+        self.residue_mutant = control_dict['residue_mutant']
+        self.chains = control_dict['chains']
+        self.functions = [control_dict['function_GB'], control_dict['function_ele'], control_dict['function_Rlj'], control_dict['function_epsilonlj']]
+        self.windows = control_dict['windows']
+        self.wt_structure = wt_structure
+        self.mt_structure = mt_structure
