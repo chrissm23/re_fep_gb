@@ -6,7 +6,8 @@ import os
 import subprocess
 
 from biopandas.pdb import PandasPdb
-import create_parm
+
+import setup.python_scripts.create_parm as create_parm
 
 class MutationReGbFe:
     """Class with required information from structure and mutation as well as methods to calculate data to be filled into the templates for RE-FEP-GB"""
@@ -49,6 +50,8 @@ class MutationReGbFe:
         self.functions = [control_dict['function_GB'], control_dict['function_ele'], control_dict['function_Rlj'], control_dict['function_epsilonlj']]
         self.windows = control_dict['windows']
         # Read PDBs into pandas dataframe and delete hydrogens
+        self.wt_pdb_path = wt_structure_path
+        self.mt_pdb_path = None
         self.wt_structure = PandasPdb().read_pdb(wt_structure_path) # Read PDB file into pandas dataframe
         self.mt_structure = PandasPdb().read_pdb(wt_structure_path) # Read PDB file into pandas dataframe which then will be change to mutant
         self.wt_structure.df['ATOM'] = self.wt_structure.df['ATOM'][self.wt_structure.df['ATOM']['element_symbol']!="H"]
@@ -119,7 +122,8 @@ class MutationReGbFe:
                 (self.mt_structure.df['ATOM']['residue_number'] <= self.residue_position + 1)]
 
             # Write WT tripeptide PDB
-            self.wt_structure.to_pdb(path='setup/leap/pdbs/wt_tripeptide.pdb', records=None, gz=False, append_newline=True)
+            self.wt_pdb_path = 'setup/parms_n_pdbs/pdbs/wt_tripeptide.pdb'
+            self.wt_structure.to_pdb(path=self.wt_pdb_path, records=None, gz=False, append_newline=True)
 
         # If all is selected, mutate all chains
         elif self.chains_to_mutate_str == 'all':
@@ -147,7 +151,9 @@ class MutationReGbFe:
                     self.change_residue_name(chain, self.residue_position, self.residue_mutant)
                     self.delete_side_chain(chain, self.residue_position)
         
-        self.mt_structure.to_pdb(path='setup/leap/pdbs/mt_tripeptide.pdb', records=None, gz=False, append_newline=True)
+        self.mt_pdb_path = 'setup/parms_n_pdbs/pdbs/mt_tripeptide.pdb'
+        self.mt_structure.to_pdb(path=self.mt_pdb_path, records=None, gz=False, append_newline=True)
 
     def create_parms(self):
         """Creates parameter files of WT and mutant"""
+        create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path)

@@ -86,3 +86,17 @@ def read_input(control_file):
 
     return control_dict
 
+def make_executable(path):
+    """Make file executable"""
+    mode = os.stat(path).st_mode
+    mode |= (mode & 0o444) >> 2 #copy R bits to X
+    os.chmod(path, mode)
+
+def replace_in_file(path, replace_dict):
+    """Replace in file changes[0] to changes[1]"""
+    with fileinput.FileInput(path, inplace=True, backup='.bak') as f:
+        for line in f:
+            new_line = line
+            for change in replace_dict:
+                new_line = new_line.replace(change, replace_dict[change])
+            print(new_line, end='')
