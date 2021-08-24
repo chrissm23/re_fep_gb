@@ -8,7 +8,7 @@ import shutil
 
 from biopandas.pdb import PandasPdb
 
-import setup.python_scripts.get_data as get_data
+import setup.python_scripts.get_data_n_general as get_data_n_general
 import setup.python_scripts.MutationReGbFe as MutationReGbFe
 
 # List input files and determine if everything needed is there
@@ -23,11 +23,10 @@ if not control_file in files:
     raise FileNotFoundError('No control file \'control.txt\' found.')
 pdb_file = pdb_files[0]
 
-control_dict = get_data.read_input(control_file) # Get required parameters from control file
+control_dict = get_data_n_general.read_input(control_file) # Get required parameters from control file
 
 mutation = MutationReGbFe.MutationReGbFe(control_dict, pdb_file)
 mutation.create_mutant() # Create mutant PDB and WT PDB if tripeptide was selected
-mutation.create_og_parms() # Create unmodified (end points) parameter files
-mutation.create_inter_parms() # Create intermediate parameter files according to functions in control file
+mutation.create_parms() # Create unmodified (end points) parameter files
 mutation.create_RE_files() # Create files required for replica exchage
 mutation.create_free_energy_dir() # Create directory with all that is required to run on cow

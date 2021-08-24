@@ -86,4 +86,3 @@ def read_input(control_file):
 
     return control_dict
 
-# Add more functions if more input is necessary

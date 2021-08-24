@@ -119,7 +119,7 @@ class MutationReGbFe:
                 (self.mt_structure.df['ATOM']['residue_number'] <= self.residue_position + 1)]
 
             # Write WT tripeptide PDB
-            self.wt_structure.to_pdb(path='setup/leap/wt_tripeptide.pdb', records=None, gz=False, append_newline=True)
+            self.wt_structure.to_pdb(path='setup/leap/pdbs/wt_tripeptide.pdb', records=None, gz=False, append_newline=True)
 
         # If all is selected, mutate all chains
         elif self.chains_to_mutate_str == 'all':
@@ -147,4 +147,7 @@ class MutationReGbFe:
                     self.change_residue_name(chain, self.residue_position, self.residue_mutant)
                     self.delete_side_chain(chain, self.residue_position)
         
-        self.mt_structure.to_pdb(path='setup/leap/mt_tripeptide.pdb', records=None, gz=False, append_newline=True)
+        self.mt_structure.to_pdb(path='setup/leap/pdbs/mt_tripeptide.pdb', records=None, gz=False, append_newline=True)
+
+    def create_parms(self):
+        """Creates parameter files of WT and mutant"""
