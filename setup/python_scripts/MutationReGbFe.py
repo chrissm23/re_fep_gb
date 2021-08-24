@@ -1,11 +1,11 @@
-from sys import path
-from biopandas.pdb import PandasPdb
 import numpy as np
 import pandas as pd
 import fileinput
 from shutil import copyfile
 import os
 import subprocess
+
+from biopandas.pdb import PandasPdb
 
 class MutationReGbFe:
     """Class with required information from structure and mutation as well as methods to calculate data to be filled into the templates for RE-FEP-GB"""

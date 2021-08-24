@@ -26,7 +26,7 @@ pdb_file = pdb_files[0]
 control_dict = get_data.read_input(control_file) # Get required parameters from control file
 
 mutation = MutationReGbFe.MutationReGbFe(control_dict, pdb_file)
-mutation.create_mutant()
+mutation.create_mutant() # Create mutant PDB and WT PDB if tripeptide was selected
 mutation.create_og_parms() # Create unmodified (end points) parameter files
 mutation.create_inter_parms() # Create intermediate parameter files according to functions in control file
 mutation.create_RE_files() # Create files required for replica exchage

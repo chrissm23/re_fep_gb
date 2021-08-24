@@ -1,4 +1,3 @@
-from sys import flags
 import numpy as np
 import pandas as pd
 import os
@@ -27,26 +26,26 @@ def read_input(control_file):
                 sequence_parms = sequence.split()
                 control_dict['windows'] = np.arange(float(sequence_parms[0]), float(sequence_parms[2]), float(sequence_parms[1]))
                 control_dict['windows'] =  np.append(control_dict['windows'], float(sequence_parms[2]))
-            elif parameter_name == 'windows1+':
+            elif parameter_name == 'windows1+': # Get custom windows
                 additional_sequence = control[1].strip().partition('(')[2].partition(')')[0]
                 if additional_sequence:
                     additional_windows = [float(x) for x in additional_sequence.split()]
                     additional_windows = np.array(additional_windows)
                     control_dict['windows'] = np.concatenate([control_dict['windows'], additional_windows])
                     control_dict['windows'] = np.sort(control_dict['windows'])
-            elif parameter_name == 'res_pos':
+            elif parameter_name == 'res_pos': # Get position of the mutation(s)
                 residue_position = control[1].strip().split(',')
                 if len(residue_position) > 1:
                     control_dict['residue_position'] = [int(x) for x in residue_position]
                 elif len(residue_position) == 1 and residue_position[0]:
                     control_dict['residue_position'] = int(residue_position[0])
-            elif parameter_name == 'res_mut':
+            elif parameter_name == 'res_mut': # Get amino acid(s) to mutate to
                 residue_mutant = control[1].strip().split(',')
                 if len(residue_position) > 1:
                     control_dict['residue_mutant'] = residue_mutant
                 elif len(residue_mutant) == 1 and residue_mutant[0]:
                     control_dict['residue_mutant'] = residue_mutant[0]
-            elif parameter_name == 'chains':
+            elif parameter_name == 'chains': # Get chain(s) to mutate
                 chains = control[1].strip().split(',')
                 if len(chains) > 1:
                     control_dict['chains'] = chains
