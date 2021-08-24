@@ -68,9 +68,9 @@ class MutationReGbFe:
         self.last_residues = []
         # Get fist and last residue number of each chain
         for chain in self.chains_pdb:
-            res_min = self.wt_structure.df['ATOM']['residue_number'].loc[self.biopandas_pdb.df['ATOM']['chain_id'] == chain].min()
+            res_min = self.wt_structure.df['ATOM']['residue_number'].loc[self.wt_structure.df['ATOM']['chain_id'] == chain].min()
             self.first_residues.append(res_min)
-            res_max = self.wt_structure.df['ATOM']['residue_number'].loc[self.biopandas_pdb.df['ATOM']['chain_id'] == chain].max()
+            res_max = self.wt_structure.df['ATOM']['residue_number'].loc[self.wt_structure.df['ATOM']['chain_id'] == chain].max()
             self.last_residues.append(res_max)
         
         # Chainge from alphabetic chain ID's to numeric ones
