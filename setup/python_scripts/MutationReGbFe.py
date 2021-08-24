@@ -6,6 +6,7 @@ import os
 import subprocess
 
 from biopandas.pdb import PandasPdb
+import create_parm
 
 class MutationReGbFe:
     """Class with required information from structure and mutation as well as methods to calculate data to be filled into the templates for RE-FEP-GB"""
