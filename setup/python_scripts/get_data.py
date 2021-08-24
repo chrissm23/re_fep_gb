@@ -48,7 +48,7 @@ def read_input(control_file):
                     control_dict['residue_mutant'] = residue_mutant[0]
             elif parameter_name == 'chains':
                 chains = control[1].strip().split(',')
-                if len(chains > 1):
+                if len(chains) > 1:
                     control_dict['chains'] = chains
                 elif len(chains) == 1 and chains[0]:
                     control_dict['chains'] = chains[0]
