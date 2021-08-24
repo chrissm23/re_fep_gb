@@ -35,19 +35,24 @@ def read_input(control_file):
                     control_dict['windows'] = np.concatenate([control_dict['windows'], additional_windows])
                     control_dict['windows'] = np.sort(control_dict['windows'])
             elif parameter_name == 'res_pos':
-                control_dict['residue_position'] = int(control[1].strip())
+                residue_position = control[1].strip().split(',')
+                if len(residue_position) > 1:
+                    control_dict['residue_position'] = [int(x) for x in residue_position]
+                elif len(residue_position) == 1 and residue_position[0]:
+                    control_dict['residue_position'] = int(residue_position[0])
             elif parameter_name == 'res_mut':
-                control_dict['residue_mutant'] = control[1].strip()
+                residue_mutant = control[1].strip().split(',')
+                if len(residue_position) > 1:
+                    control_dict['residue_mutant'] = residue_mutant
+                elif len(residue_mutant) == 1 and residue_mutant[0]:
+                    control_dict['residue_mutant'] = residue_mutant[0]
             elif parameter_name == 'chains':
                 chains = control[1].strip().split(',')
-                if all(isinstance(x, str) for x in chains):
+                if len(chains > 1):
                     control_dict['chains'] = chains
-                elif chains[0] == 'tripeptide':
-                    control_dict['chains'] = chains
-                elif chains[0] == 'all':
-                    control_dict['chains'] = chains
-                else:
-                    raise AttributeError("\'chains\' can only be \'tripeptide\', \'all\' or list of")
+                elif len(chains) == 1 and chains[0]:
+                    control_dict['chains'] = chains[0]
+            # Later add checks for the different options of functions
             elif parameter_name == 'function_GB':
                 control_dict['function_GB'] = control[1].strip()
             elif parameter_name == 'function_ele':
@@ -56,6 +61,25 @@ def read_input(control_file):
                 control_dict['function_Rlj'] = control[1].strip()
             elif parameter_name == 'function_epsilonlj':
                 control_dict['function_epsilonlj'] = control[1].strip()
+    
+    # Check for unexpected number of values in the control parameters
+    if isinstance(control_dict['chains', list]):
+        number_chains = len(control_dict['chains'])
+    else:
+        number_chains = 1
+    if isinstance(control_dict['residue_mutant'], list):
+        number_mutant = len(control_dict['residue_mutant'])
+    else:
+        number_mutant = 1
+    if isinstance(control_dict['residue_position'], list):
+        number_position = len(control_dict['residue_position'])
+    else:
+        number_position = 1
+
+    if number_mutant > 1 and number_mutant != number_chains:
+        raise Exception("\'res_mut\' parameter must be either a single amino acid or same number of amino acids as number of chains")
+    if number_position > 1 and number_position != number_chains:
+        raise Exception("\'res_pos\' parameter must be either a single residue number or same number of residue numbers as number of chains")
     parameters = ['windows', 'residue_position', 'residue_mutant', 'chains', 'function_GB', 'function_ele', 'function_Rlj', 'function_epsilonlj']
     if not all(x in control_dict.keys() for x in parameters):
         diff_list = [x for x in parameters if x not in control_dict.keys()]
@@ -63,10 +87,4 @@ def read_input(control_file):
 
     return control_dict
 
-def create_mutant(wt_structure, chains):
-    if chains == 'tripeptide':
-        fjdk
-    elif chains == 'all':
-        gjgj
-    else:
-        jgi
+# Add more functions if more input is necessary

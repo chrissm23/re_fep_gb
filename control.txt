@@ -1,6 +1,6 @@
 res_pos=34
 res_mut=VAL
-chains=all
+chains=tripeptide
 function_GB=linear
 function_ele=linear
 function_Rlj=linear

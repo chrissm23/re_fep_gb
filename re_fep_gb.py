@@ -25,11 +25,8 @@ pdb_file = pdb_files[0]
 
 control_dict = get_data.read_input(control_file) # Get required parameters from control file
 
-wt_structure = PandasPdb().read_pdb(pdb_file) # Read PDB file into pandas dataframe
-get_data.create_mutant(wt_structure, control_dict['chains'])
-mt_structure = PandasPdb().read_pdb('./setup/leap/mutant.pdb')
-wt_structure = PandasPdb().read_pdb(pdb_file) # Read PDB file into pandas dataframe
-mutation = MutationReGbFe(control_dict, wt_structure, mt_structure)
+mutation = MutationReGbFe(control_dict, pdb_file)
+mutation.create_mutant()
 mutation.create_og_parms() # Create unmodified (end points) parameter files
 mutation.create_inter_parms() # Create intermediate parameter files according to functions in control file
 mutation.create_RE_files() # Create files required for replica exchage
