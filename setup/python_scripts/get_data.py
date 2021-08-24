@@ -63,7 +63,7 @@ def read_input(control_file):
                 control_dict['function_epsilonlj'] = control[1].strip()
     
     # Check for unexpected number of values in the control parameters
-    if isinstance(control_dict['chains', list]):
+    if isinstance(control_dict['chains'], list):
         number_chains = len(control_dict['chains'])
     else:
         number_chains = 1
