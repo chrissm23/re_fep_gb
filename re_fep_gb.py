@@ -25,6 +25,14 @@ pdb_file = pdb_files[0]
 
 control_dict = get_data_n_general.read_input(control_file) # Get required parameters from control file
 
+# Create required directories to store parameter files, bash scripts and pdbs
+parms_n_pdbs_dir = 'setup/parms_n_pdbs/'
+parms_dir = 'setup/parms_n_pdbs/parms/'
+pdbs_dir = 'setup/parms_n_pdbs/pdbs/'
+for x in [parms_n_pdbs_dir, parms_dir, pdbs_dir]:
+    if not os.path.exists(x):
+        os.makedirs(x)
+
 mutation = MutationReGbFe.MutationReGbFe(control_dict, pdb_file)
 mutation.create_mutant() # Create mutant PDB and WT PDB if tripeptide was selected
 mutation.create_parms() # Create unmodified (end points) parameter files
