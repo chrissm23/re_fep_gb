@@ -4,6 +4,7 @@ import fileinput
 import shutil
 import os
 import subprocess
+import parmed
 
 from biopandas.pdb import PandasPdb
 
@@ -47,3 +48,4 @@ def create_og_parms(path_wt_pdb, path_mt_pdb):
     subprocess.call(wt_bash_path)
     subprocess.call(mt_bash_path)
     print("Parameter files created.")
+

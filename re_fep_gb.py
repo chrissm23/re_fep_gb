@@ -29,6 +29,8 @@ control_dict = get_data_n_general.read_input(control_file) # Get required parame
 parms_n_pdbs_dir = 'setup/parms_n_pdbs/'
 parms_dir = 'setup/parms_n_pdbs/parms/'
 pdbs_dir = 'setup/parms_n_pdbs/pdbs/'
+parms_windows_dir = 'setup/parms_n_pdbs/parms/parms_windows'
+rst_windows_dir = 'setup/parms_n_pdbs/parms/rst_windows'
 for x in [parms_n_pdbs_dir, parms_dir, pdbs_dir]:
     if not os.path.exists(x):
         os.makedirs(x)
