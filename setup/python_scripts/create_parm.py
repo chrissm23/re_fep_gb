@@ -49,3 +49,4 @@ def create_og_parms(path_wt_pdb, path_mt_pdb):
     subprocess.call(mt_bash_path)
     print("Parameter files created.")
 
+def create_intermediate_parms(functions,)
