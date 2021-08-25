@@ -17,10 +17,10 @@ def create_og_parms(path_wt_pdb, path_mt_pdb):
     tmpl_path = 'setup/tmpls/leap_tmpls/gen_parm_pdb.tmpl'
 
     # Output paths
-    wt_parm_path = 'setup/parms_n_pdbs/parms/wt.parm7'
-    wt_rst_path = 'setup/parms_n_pdbs/parms/wt.rst7'
-    mt_parm_path = 'setup/parms_n_pdbs/parms/mt.parm7'
-    mt_rst_path = 'setup/parms_n_pdbs/parms/mt.rst7'
+    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
+    wt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/wt_0.rst7'
+    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7'
+    mt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/mt_0.rst7'
 
     # Dictionaries of fields to replace in template
     replace_dict_wt = {
