@@ -91,7 +91,7 @@ class MutationReGbFe:
             else:
                 self.chains_to_mutate_int = [self.chain_to_number[x] for x in self.chains_to_mutate_str]
 
-        # Get new mutation positions, initial and final residues for each chain after nunning leap
+        # Get new mutation positions, initial and final residues for each chain after running leap
         if self.chains_to_mutate_str != 'tripeptide':
             self.leap_first = [0]*len(self.first_residues)
             self.leap_last = [0]*len(self.last_residues)
