@@ -61,6 +61,9 @@ class MutationReGbFe:
         self.number_chains = None
         self.first_residues = None
         self.last_residues = None
+        self.leap_first = None
+        self.leap_last = None
+        self.leap_residue_position = None
 
         self.get_structure_info()
 
@@ -87,7 +90,25 @@ class MutationReGbFe:
                 'to dictionary \"chain_to_number\" in setup/python_scripts/MutationReGbFe.py')
             else:
                 self.chains_to_mutate_int = [self.chain_to_number[x] for x in self.chains_to_mutate_str]
-    
+
+        # Get new mutation positions, initial and final residues for each chain after nunning leap
+        if self.chains_to_mutate_str != 'tripeptide':
+            self.leap_first = [0]*len(self.first_residues)
+            self.leap_last = [0]*len(self.last_residues)
+            for i in range(len(self.first_residues)):
+                if i == 0:
+                    self.leap_first[i] = 1
+                    self.leap_last[i] = self.last_residues[i] - (self.first_residues[i] - 1)
+                else:
+                    self.leap_first[i] = self.leap_last[i-1] + 1
+                    self.leap_last[i] = self.last_residues[i] - self.first_residues[i] + self.leap_first[i]
+            if not isinstance(self.residue_position, list):
+                self.leap_residue_position = [self.residue_position - self.first_residues[i] + self.leap_first[i] for i in range(len(self.leap_first))
+                if i in self.chains_to_mutate_int]
+            else:
+                self.leap_residue_position = [self.residue_position[i] - self.first_residues[self.chains_to_mutate_int[i]] + 
+                    self.leap_first[self.chains_to_mutate_int[i]] for i in range(len(self.residue_position))]
+
     def change_residue_name(self, chain, residue_position, residue_mutant):
         """Changes the residue name in the PDB to the desired mutation"""
         self.mt_structure.df['ATOM']['residue_name'].loc[
