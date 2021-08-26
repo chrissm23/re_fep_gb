@@ -108,6 +108,17 @@ class MutationReGbFe:
             else:
                 self.leap_residue_position = [self.residue_position[i] - self.first_residues[self.chains_to_mutate_int[i]] + 
                     self.leap_first[self.chains_to_mutate_int[i]] for i in range(len(self.residue_position))]
+        else:
+            self.leap_first = 1
+            if self.residue_position == self.last_residues[0]:
+                self.leap_last = 2
+                self.leap_residue_position = 2
+            elif self.residue_position == self.first_residues[0]:
+                self.leap_last = 2
+                self.leap_residue_position = 1
+            else:
+                self.leap_last = 3
+                self.leap_residue_position = 2
 
     def change_residue_name(self, chain, residue_position, residue_mutant):
         """Changes the residue name in the PDB to the desired mutation"""
