@@ -89,7 +89,7 @@ def read_input(control_file):
 def make_executable(path):
     """Make file executable"""
     mode = os.stat(path).st_mode
-    mode |= (mode & 0o444) >> 2 #copy R bits to X
+    mode |= (mode & 0o444) >> 2 # Copy R bits to X
     os.chmod(path, mode)
 
 def replace_in_file(path, replace_dict):
@@ -100,3 +100,67 @@ def replace_in_file(path, replace_dict):
             for change in replace_dict:
                 new_line = new_line.replace(change, replace_dict[change])
             print(new_line, end='')
+
+def details_str_to_pd(string):
+    """Convert table from printLJType turned into a string to pandas dataframe"""
+    lines = string.strip().split('\n')
+    lines = lines[2:]
+    line_0 = lines[0].split()
+    line_0.remove('GB')
+    line_0.remove('GB')
+    line_0[-2] = 'GB ' + line_0[-2]
+    line_0[-1] = 'GB ' + line_0[-1]
+    line_0.remove('LJ')
+    line_0.remove('LJ')
+    line_0[6] = 'LJ ' + line_0[6]
+    line_0[7] = 'LJ ' + line_0[7]
+    table_headers = line_0
+    table_list = []
+    for line in lines[1:]:
+        table_list.append(line.split())
+
+    table_np = np.array(table_list)
+    table_pd = pd.DataFrame(table_np, columns=table_headers)
+    table_pd['ATOM'] = pd.to_numeric(table_pd['ATOM'], downcast="integer")
+    table_pd['RES'] = pd.to_numeric(table_pd['RES'], downcast="integer")
+    table_pd['At.#'] = pd.to_numeric(table_pd['At.#'], downcast="integer")
+    table_pd['LJ Radius'] = pd.to_numeric(table_pd['LJ Radius'], downcast="float")
+    table_pd['LJ Depth'] = pd.to_numeric(table_pd['LJ Depth'], downcast="float")
+    table_pd['Mass'] = pd.to_numeric(table_pd['Mass'], downcast="float")
+    table_pd['Charge'] = pd.to_numeric(table_pd['Charge'], downcast="float")
+    table_pd['GB Radius'] = pd.to_numeric(table_pd['GB Radius'], downcast="float")
+    table_pd['GB Screen'] = pd.to_numeric(table_pd['GB Screen'], downcast="float")
+    return table_pd
+
+def ljtypes_str_to_pd(string):
+    """Convert table from printLJTypes turned into a string to pandas dataframe"""
+    lines = string.strip().split('\n')
+    lines = lines[2:]
+    table_list = []
+    for line in lines:
+        row_list = line.split()
+        table_list.append([int(row_list[1]), int(row_list[-1])])
+    
+    table_np = np.array(table_list)
+    table_pd = pd.DataFrame(table_np, columns=['ATOM', 'LJ Type'])
+    table_pd['ATOM'] = pd.to_numeric(table_pd['ATOM'], downcast="integer")
+    table_pd['LJ Type'] = pd.to_numeric(table_pd['LJ Type'], downcast="integer")
+    return table_pd
+
+def ljmatrix_str_to_pd(string):
+    """Convert table from printLJMatrix turned into a string to pandas dataframe"""
+    lines = string.strip().split('\n')
+    lines = lines[2:]
+    table_list = []
+    for line in lines:
+        row_list = line.split()
+        table_list.append([row_list[1].strip().partition('[')[2].partition(']')[0], row_list[3].strip().partition('[')[2].partition(']')[0], 
+            row_list[-2], row_list[-1]])
+
+    table_np = np.array(table_list)
+    table_pd = pd.DataFrame(table_np, columns=['Atom Type 1', 'Atom Type 2', 'R_ij', 'Eps_ij'])
+    table_pd['Atom Type 1'] = pd.to_numeric(table_pd['Atom Type 1'], downcast="integer")
+    table_pd['Atom Type 2'] = pd.to_numeric(table_pd['Atom Type 2'], downcast="integer")
+    table_pd['R_ij'] = pd.to_numeric(table_pd['R_ij'], downcast="float")
+    table_pd['Eps_ij'] = pd.to_numeric(table_pd['Eps_ij'], downcast="float")
+    return table_pd
