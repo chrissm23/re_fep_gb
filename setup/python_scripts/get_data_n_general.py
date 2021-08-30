@@ -164,3 +164,26 @@ def ljmatrix_str_to_pd(string):
     table_pd['R_ij'] = pd.to_numeric(table_pd['R_ij'], downcast="float")
     table_pd['Eps_ij'] = pd.to_numeric(table_pd['Eps_ij'], downcast="float")
     return table_pd
+
+def get_multiplier(window, functional, truncate=False):
+    """Calculates multiplier of the parameter according to window from 0 to 1 and functional. If truncate=True multiplier goes to 0 faster than window"""
+    y_1 = 1
+    x_1 = 1
+    a = 1
+    if truncate == True:
+        x_0 = 0.2
+        b = 0.05
+        c = -0.05
+    else:
+        x_0 = 0
+        b = 0
+        c = 0
+    if window <= x_0:
+        multiplier = 0
+    else:
+        if functional == 'linear':
+            multiplier = y_1/(x_1-x_0)*(window - x_0)
+        if functional == 'cuadratic':
+            multiplier = window*(a*window + b) + c
+            
+    return multiplier

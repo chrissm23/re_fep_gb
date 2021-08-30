@@ -48,7 +48,7 @@ class MutationReGbFe:
         self.chains_to_mutate_str = control_dict['chains']
         self.chains_to_mutate_int = None
         self.functions = [control_dict['function_GB'], control_dict['function_ele'], control_dict['function_Rlj'], control_dict['function_epsilonlj']]
-        self.windows = control_dict['windows']
+        self.windows = control_dict['windows'].tolist()
         # Read PDBs into pandas dataframe and delete hydrogens
         self.wt_pdb_path = wt_structure_path
         self.mt_pdb_path = None
@@ -190,4 +190,5 @@ class MutationReGbFe:
         """Creates parameter files of WT and mutant"""
         create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path) # Create parameter files from original WT and mutant structures
 
-        create_parm.create_intermediate_parms(self.functions, self.leap_residue_position) # Add other information required to create modified parameter files
+        # Add other information required to create modified parameter files
+        create_parm.create_intermediate_parms(self.functions, self.windows, self.leap_residue_position)
