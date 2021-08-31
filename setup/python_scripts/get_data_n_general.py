@@ -15,6 +15,7 @@ def read_input(control_file):
     """Reads control.txt and outputs a dictionary with control parameters."""
     control_dict = {} # Dictionary to store parameters
     functions = [] # List to store functional relationship of chan
+    possible_functions = ['linear', 'cuadratic']
     with open(control_file, 'r') as cf:
         lines = cf.readlines()
         for line in lines:
@@ -53,13 +54,21 @@ def read_input(control_file):
                     control_dict['chains'] = chains[0]
             # Later add checks for the different options of functions
             elif parameter_name == 'function_GB':
-                control_dict['function_GB'] = control[1].strip()
+                functional = control[1].strip()
+                if functional in possible_functions:
+                    control_dict['function_GB'] = functional
             elif parameter_name == 'function_ele':
-                control_dict['function_ele'] = control[1].strip()
+                functional = control[1].strip()
+                if functional in possible_functions:
+                    control_dict['function_ele'] = functional
             elif parameter_name == 'function_Rlj':
-                control_dict['function_Rlj'] = control[1].strip()
+                functional = control[1].strip()
+                if functional in possible_functions:
+                    control_dict['function_Rlj'] = functional
             elif parameter_name == 'function_epsilonlj':
-                control_dict['function_epsilonlj'] = control[1].strip()
+                functional = control[1].strip()
+                if functional in possible_functions:
+                    control_dict['function_epsilonlj'] = functional
     
     # Check for unexpected number of values in the control parameters
     if isinstance(control_dict['chains'], list):
@@ -185,5 +194,5 @@ def get_multiplier(window, functional, truncate=False):
             multiplier = y_1/(x_1-x_0)*(window - x_0)
         if functional == 'cuadratic':
             multiplier = window*(a*window + b) + c
-            
+
     return multiplier
