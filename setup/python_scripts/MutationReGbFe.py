@@ -206,10 +206,10 @@ class MutationReGbFe:
         parm_files_wt = [x for x in parm_files if x[:2]=='wt']
         parm_files_mt = [x for x in parm_files if x[:2]=='mt']
         parm_files_wt.sort(key=sortParmPaths_numerically, reverse=True)
-        parm_files_wt = [parm_files_wt[0]] + parm_files_wt[1:]
+        parm_files_wt = [parm_files_wt[-1]] + parm_files_wt[:-1]
         parm_files_mt.sort(key=sortParmPaths_numerically)
         parm_files_mt = parm_files_mt[1:] + [parm_files_mt[0]]
-        parm_files = parm_files_wt + parm_files_wt
+        parm_files = parm_files_wt + parm_files_mt
         parm_files_str = '\n'.join(parm_files)
 
         equilibration_dir = 'FE/equilibration'
@@ -236,6 +236,7 @@ class MutationReGbFe:
         get_data_n_general.replace_in_file(f'{re_dir}/hamiltonians.dat', replace_dict)
         shutil.copyfile('setup/tmpls/re_tmpls/generate_remd_inputs.sh', f'{re_dir}/generate_remd_inputs.sh')
         get_data_n_general.make_executable(f'{re_dir}/generate_remd_inputs.sh')
+        subprocess.call(f'{re_dir}/generate_remd_inputs.sh')
         for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows'):
             shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{re_dir}/{x}')
         
