@@ -192,7 +192,7 @@ class MutationReGbFe:
         """Creates parameter files of WT and mutant"""
         create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path) # Create parameter files from original WT and mutant structures
 
-        print("Creating intermediate parameter files.")
+        print("Creating intermediate parameter files...")
         create_parm.create_intermediate_parms(self.functions, self.windows, self.leap_residue_position) # Create intermediate parameter files
         print("Intermediate parameters finished.")
 
@@ -226,7 +226,7 @@ class MutationReGbFe:
                 shutil.copyfile('FE/minimization/minimization.rst7', f'{equilibration_dir}/{i}/minimization.rst7')
 
         # Copy files to RE directory
-        print("Generating files for REMD")
+        print("Generating files for REMD...")
         shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{re_dir}/groupfile.ref')
         shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{re_dir}/mdin.ref')
         shutil.copyfile('setup/tmpls/re_tmpls/hamiltonians.tmpl', f'{re_dir}/hamiltonians.dat')
@@ -239,8 +239,6 @@ class MutationReGbFe:
         subprocess.call(f'{re_dir}/generate_remd_inputs.sh')
         for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows'):
             shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{re_dir}/{x}')
-        
-        print("Done")
 
     def create_FE_dir(self):
         """Creates directory with all required files and scripts to setup and run equilibration and replica exchange"""
@@ -269,3 +267,4 @@ class MutationReGbFe:
         # Copiar plantillas de slurm
         
         self.create_RE_n_equil_files()
+        print("Done.")
