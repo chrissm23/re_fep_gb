@@ -5,3 +5,6 @@ Minimization
   dx0 = 1.0D-7
   ntb = 1,
  /
+
+ &ewald
+ /

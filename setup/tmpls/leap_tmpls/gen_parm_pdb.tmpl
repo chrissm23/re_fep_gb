@@ -12,6 +12,7 @@ source leaprc.protein.ff14SBonlysc
 
 # Load PDB structure
 ab = loadpdb %pdb_path%
+set default PBRadii mbondi3
 
 # Create and save pdb
 savepdb ab %pdb_path%

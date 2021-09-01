@@ -1,3 +1,4 @@
+from genericpath import exists
 import numpy as np
 import pandas as pd
 import fileinput
@@ -7,6 +8,7 @@ import subprocess
 
 from biopandas.pdb import PandasPdb
 
+import setup.python_scripts.get_data_n_general as get_data_n_general
 import setup.python_scripts.create_parm as create_parm
 
 class MutationReGbFe:
@@ -190,10 +192,79 @@ class MutationReGbFe:
         """Creates parameter files of WT and mutant"""
         create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path) # Create parameter files from original WT and mutant structures
 
+        print("Creating intermediate parameter files.")
         create_parm.create_intermediate_parms(self.functions, self.windows, self.leap_residue_position) # Create intermediate parameter files
+        print("Intermediate parameters finished.")
 
-    def create_RE_files(self):
+    def create_RE_n_equil_files(self):
         """Creates necessary files for hamiltonian replica exchange using the intermediate parameter files"""
         # Get names of parameter files and order them in decreasing order for WT and concatenate increasing order of MT
-        parm_files = [x for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows') if os.path.isfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}')] # List input files
-        print(parm_files)
+        def sortParmPaths_numerically(parm_path):
+            return int(parm_path[3:-6])
+        
+        parm_files = [x for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows') if os.path.isfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}')]
+        parm_files_wt = [x for x in parm_files if x[:2]=='wt']
+        parm_files_mt = [x for x in parm_files if x[:2]=='mt']
+        parm_files_wt.sort(key=sortParmPaths_numerically, reverse=True)
+        parm_files_wt = parm_files_wt[0] + parm_files_wt[1:]
+        parm_files_mt.sort(key=sortParmPaths_numerically)
+        parm_files_mt = parm_files_mt[1:] + parm_files_mt[0]
+        parm_files = parm_files_wt + parm_files_wt
+        parm_files_str = '\n'.join(parm_files)
+
+        equilibration_dir = 'FE/equilibration'
+        re_dir = 'FE/RE'
+
+        # Create directories for equilibration and copy templates to them
+        for i in range(len(parm_files)):
+            if not os.path.exists(str(i)):
+                os.makedirs(str(i))
+            shutil.copyfile('setup/tmpls/equilibration_tmpl/heat.in', f'{equilibration_dir}/{i}/heat.in')
+            shutil.copyfile('setup/tmpls/equilibration_tmpl/equilibration.in', f'{equilibration_dir}/{i}/equilibration.in')
+            shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{parm_files[i]}', f'{equilibration_dir}/{i}/topology.parm7')
+            if i == 0:
+                shutil.copyfile('FE/minimization/minimization.rst7', f'{equilibration_dir}/{i}/minimization.rst7')
+
+        # Copy files to RE directory
+        print("Generating files for REMD")
+        shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{re_dir}/groupfile.ref')
+        shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{re_dir}/mdin.ref')
+        shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{re_dir}/hamiltonians.dat')
+        replace_dict = {
+            "%files%": parm_files_str
+        }
+        get_data_n_general.replace_in_file(f'{re_dir}/hamiltonians.dat', replace_dict)
+        shutil.copyfile('setup/tmpls/re_tmpls/generate_remd_inputs.sh', f'{re_dir}/generate_remd_inputs.sh')
+        get_data_n_general.make_executable(f'{re_dir}/generate_remd_inputs.sh')
+        for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows'):
+            shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{re_dir}/{x}')
+        
+        print("Done")
+
+    def create_FE_dir(self):
+        """Creates directory with all required files and scripts to setup and run equilibration and replica exchange"""
+        # Create directories
+        fe_dir = 'FE'
+        if not os.path.exists(fe_dir):
+            os.makedirs(fe_dir)
+        
+        equilibration_dir = 'FE/equilibration'
+        re_dir = 'FE/RE'
+        minimization_dir = 'FE/minimization'
+
+        for x in [equilibration_dir, re_dir, minimization_dir]:
+            if not os.path.exists(x):
+                os.makedirs(x)
+
+        # Copy files for minimization of WT
+        shutil.copyfile('setup/tmpls/minimize_tmpl/minimization.in', f'{minimization_dir}/minimization.in')
+        shutil.copyfile('setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7', f'{minimization_dir}/topology.parm7')
+        shutil.copyfile('setup/parms_n_pdbs/parms/rst_windows/wt_0.rst7', f'{minimization_dir}/coordinates.rst7')
+        shutil.copyfile('setup/tmpls/minimize_tmpl/minimize.sh', f'{minimization_dir}/minimize.sh')
+        # Minimize WT
+        get_data_n_general.make_executable(f'{minimization_dir}/minimize.sh')
+        subprocess.call(f'{minimization_dir}/minimize.sh')
+
+        # Copiar plantillas de slurm
+        
+        self.create_RE_n_equil_files()
