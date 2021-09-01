@@ -264,7 +264,8 @@ class MutationReGbFe:
         get_data_n_general.make_executable(f'{minimization_dir}/minimize.sh')
         subprocess.call(f'{minimization_dir}/minimize.sh')
 
-        # Copiar plantillas de slurm
+        # Copy slurm templates
+        
         
         self.create_RE_n_equil_files()
         print("Done.")
