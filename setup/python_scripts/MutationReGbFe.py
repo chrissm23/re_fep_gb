@@ -229,7 +229,7 @@ class MutationReGbFe:
         print("Generating files for REMD")
         shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{re_dir}/groupfile.ref')
         shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{re_dir}/mdin.ref')
-        shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{re_dir}/hamiltonians.dat')
+        shutil.copyfile('setup/tmpls/re_tmpls/hamiltonians.tmpl', f'{re_dir}/hamiltonians.dat')
         replace_dict = {
             "%files%": parm_files_str
         }
