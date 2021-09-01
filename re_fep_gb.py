@@ -39,4 +39,6 @@ mutation = MutationReGbFe.MutationReGbFe(control_dict, pdb_file)
 mutation.create_mutant() # Create mutant PDB and WT PDB if tripeptide was selected
 mutation.create_parms() # Create unmodified (end points) parameter files
 mutation.create_RE_files() # Create files required for replica exchage
+mutation.run_minimization() # Run minimization of WT structure
 mutation.create_free_energy_dir() # Create directory with all that is required to run on cow
+# Restart output files from heating must match those of group file

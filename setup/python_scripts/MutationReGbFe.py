@@ -190,5 +190,10 @@ class MutationReGbFe:
         """Creates parameter files of WT and mutant"""
         create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path) # Create parameter files from original WT and mutant structures
 
-        # Add other information required to create modified parameter files
-        create_parm.create_intermediate_parms(self.functions, self.windows, self.leap_residue_position)
+        create_parm.create_intermediate_parms(self.functions, self.windows, self.leap_residue_position) # Create intermediate parameter files
+
+    def create_RE_files(self):
+        """Creates necessary files for hamiltonian replica exchange using the intermediate parameter files"""
+        # Get names of parameter files and order them in decreasing order for WT and concatenate increasing order of MT
+        parm_files = [x for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows') if os.path.isfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}')] # List input files
+        print(parm_files)
