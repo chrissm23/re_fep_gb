@@ -226,7 +226,6 @@ class MutationReGbFe:
                 shutil.copyfile('FE/minimization/minimization.rst7', f'{equilibration_dir}/{i}/minimization.rst7')
 
         # Copy files to RE directory
-        print("Generating files for REMD...")
         shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{re_dir}/groupfile.ref')
         shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{re_dir}/mdin.ref')
         shutil.copyfile('setup/tmpls/re_tmpls/hamiltonians.tmpl', f'{re_dir}/hamiltonians.dat')
@@ -242,6 +241,7 @@ class MutationReGbFe:
 
     def create_FE_dir(self):
         """Creates directory with all required files and scripts to setup and run equilibration and replica exchange"""
+        print("Generating output files and directories...")
         # Create directories
         fe_dir = 'FE'
         if not os.path.exists(fe_dir):
