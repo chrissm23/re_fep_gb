@@ -1,0 +1,2 @@
+# Replica REPNUM
+-O -i mdin.rep.REPNUM -p HAMILTONIAN -c heat.rep.REPNUM -o mdout.rep.REPNUM -r rst7.rep.REPNUM
