@@ -206,9 +206,9 @@ class MutationReGbFe:
         parm_files_wt = [x for x in parm_files if x[:2]=='wt']
         parm_files_mt = [x for x in parm_files if x[:2]=='mt']
         parm_files_wt.sort(key=sortParmPaths_numerically, reverse=True)
-        parm_files_wt = parm_files_wt[0] + parm_files_wt[1:]
+        parm_files_wt = [parm_files_wt[0]] + parm_files_wt[1:]
         parm_files_mt.sort(key=sortParmPaths_numerically)
-        parm_files_mt = parm_files_mt[1:] + parm_files_mt[0]
+        parm_files_mt = parm_files_mt[1:] + [parm_files_mt[0]]
         parm_files = parm_files_wt + parm_files_wt
         parm_files_str = '\n'.join(parm_files)
 
@@ -217,8 +217,8 @@ class MutationReGbFe:
 
         # Create directories for equilibration and copy templates to them
         for i in range(len(parm_files)):
-            if not os.path.exists(str(i)):
-                os.makedirs(str(i))
+            if not os.path.exists(f'{equilibration_dir}/{i}'):
+                os.makedirs(f'{equilibration_dir}/{i}')
             shutil.copyfile('setup/tmpls/equilibration_tmpl/heat.in', f'{equilibration_dir}/{i}/heat.in')
             shutil.copyfile('setup/tmpls/equilibration_tmpl/equilibration.in', f'{equilibration_dir}/{i}/equilibration.in')
             shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{parm_files[i]}', f'{equilibration_dir}/{i}/topology.parm7')

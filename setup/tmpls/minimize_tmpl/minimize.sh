@@ -4,11 +4,13 @@
 #
 
 pmemd=$AMBERHOME/bin/pmemd
+fe_dir=./FE/minimization
 
 echo "Minimizing"
 
-$pmemd -i minimization.in -p topology.parm7 -c coordinates.rst7 \
-	-ref coordinates.rst7 -O -o minimization.out -inf min.info \
-	-r minimization.rst7
+$pmemd -i $fe_dir/minimization.in -p $fe_dir/topology.parm7 \
+	-c $fe_dir/coordinates.rst7 -ref $fe_dir/coordinates.rst7 \
+	-O -o $fe_dir/minimization.out -inf $fe_dir/min.info \
+	-r $fe_dir/minimization.rst7
 
 echo "Done"
