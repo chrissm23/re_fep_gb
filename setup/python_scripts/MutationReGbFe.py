@@ -267,8 +267,8 @@ class MutationReGbFe:
         # Copy slurm template for equilibration
         shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_equilibration.tmpl', 'FE/submit_equilibration.slurm')
         replace_dict_equil = {
-            '%residue_number%': self.residue_position,
-            '%aminoacid_mutant%': self.residue_mutant
+            '%residue_number%': str(self.residue_position),
+            '%aminoacid_mutant%': str(self.residue_mutant)
         }
         get_data_n_general.replace_in_file('FE/submit_equilibration.slurm', replace_dict_equil)
         
@@ -278,11 +278,11 @@ class MutationReGbFe:
         n_replica_by_nodes = 8
         shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_remd.tmpl', 'FE/submit_remd.slurm')
         replace_dict_remd = {
-            '%residue_number%': self.residue_position,
-            '%aminoacid_mutant%': self.residue_mutant,
-            '%n_nodes%': n_nodes,
-            '%n_replicas%': n_replicas,
-            '%n_replica_by_nodes%': n_replica_by_nodes
+            '%residue_number%': str(self.residue_position),
+            '%aminoacid_mutant%': str(self.residue_mutant),
+            '%n_nodes%': str(n_nodes),
+            '%n_replicas%': str(n_replicas),
+            '%n_replica_by_nodes%': str(n_replica_by_nodes)
         }
         get_data_n_general.replace_in_file('FE/submit_remd.slurm', replace_dict_remd)
         
