@@ -273,7 +273,7 @@ class MutationReGbFe:
         get_data_n_general.replace_in_file('FE/submit_equilibration.slurm', replace_dict_equil)
         
         # Copy slurm template for remd
-        n_replicas = 2*self.windows - 1
+        n_replicas = 2*len(self.windows) - 1
         n_nodes = n_replicas//8 + (n_replicas%8 > 0)
         n_replica_by_nodes = 8
         shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_remd.tmpl', 'FE/submit_remd.slurm')
