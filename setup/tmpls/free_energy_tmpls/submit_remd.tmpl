@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# Submit REMD to cluster
+#
+#SBATCH --job-name=%residue_number%_%aminoacid_mutant%_remd
+#SBATCH --time=4-23:59:59
+#SBATCH --nodes=%n_nodes% #n_nodes = n_replicas/8
+#SBATCH --greps=gpu:1
+#SBATCH --cpus-per-task=1
+#SBATCH --ntasks-per-node=%n_replica_by_nodes% #n_replica divided my n_nodes%
+##SBATCH --ntasks=%n_tasks%
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=ch.sustay@physik.uni-muenchen.de
+#
+
+module load amber
+
+cd RE
+
+echo "Running H-REMD..."
+mpirun -n %n_replicas% pmemd.cuda.MPI -ng %n_replicas% -groupfile groupfile
+
+cd ..
+echo "Done."
