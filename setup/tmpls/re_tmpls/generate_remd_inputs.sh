@@ -3,7 +3,7 @@
 # Run genremdinputs.py to generate all necessary files for REMD
 #
 
-fe_dir=FE/RE/%wt_or_mt
+fe_dir=FE/RE/%wt_or_mt%
 
 cd $fe_dir
 
