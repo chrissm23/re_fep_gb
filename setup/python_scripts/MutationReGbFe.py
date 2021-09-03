@@ -246,6 +246,10 @@ class MutationReGbFe:
             }
             get_data_n_general.replace_in_file(f'{rep_dir}/hamiltonians.dat', replace_dict)
             shutil.copyfile('setup/tmpls/re_tmpls/generate_remd_inputs.sh', f'{rep_dir}/generate_remd_inputs.sh')
+            replace_dict_genremd = {
+                '%wt_or_mt%': wt_or_mt
+            }
+            get_data_n_general.replace_in_file(f'{rep_dir}/generate_remd_inputs.sh', replace_dict_genremd)
             get_data_n_general.make_executable(f'{rep_dir}/generate_remd_inputs.sh')
             subprocess.call(f'{rep_dir}/generate_remd_inputs.sh')
             for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows'):
