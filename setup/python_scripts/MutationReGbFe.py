@@ -236,7 +236,7 @@ class MutationReGbFe:
                 shutil.copyfile('setup/tmpls/equilibration_tmpl/equilibration.in', f'{equil_dir}/{i}/equilibration.in')
                 shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{parm_files_topology[i]}', f'{equil_dir}/{i}/topology.parm7')
                 if i == 0:
-                    shutil.copyfile('FE/minimization/minimization.rst7', f'{equil_dir}/{i}/minimization.rst7')
+                    shutil.copyfile(f'FE/minimization/{wt_or_mt}/minimization.rst7', f'{equil_dir}/{i}/minimization.rst7')
                 # Copy files to RE directory
                 shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{rep_dir}/groupfile.ref')
                 shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{rep_dir}/mdin.ref')
@@ -287,6 +287,10 @@ class MutationReGbFe:
         for x in [min_wt_dir, min_mt_dir]:
             shutil.copyfile('setup/tmpls/minimize_tmpl/minimization.in', f'{x}/minimization.in')
             shutil.copyfile('setup/tmpls/minimize_tmpl/minimize.sh', f'{x}/minimize.sh')
+            replace_dict_min = {
+                '%wt_or_mt%': y.upper()
+            }
+            get_data_n_general.replace_in_file(f'{x}/minimize.sh', replace_dict_min)
             # Minimize WT and WT
             get_data_n_general.make_executable(f'{x}/minimize.sh')
             subprocess.call(f'{x}/minimize.sh')

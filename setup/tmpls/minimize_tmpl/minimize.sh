@@ -4,7 +4,7 @@
 #
 
 pmemd=$AMBERHOME/bin/pmemd
-fe_dir=./FE/minimization
+fe_dir=./FE/%wt_or_mt%/minimization
 
 echo "Minimizing..."
 
