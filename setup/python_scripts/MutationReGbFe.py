@@ -284,7 +284,6 @@ class MutationReGbFe:
         for x,y in zip([min_wt_dir, min_mt_dir], ['wt', 'mt']):
             shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{y}_0.parm7', f'{x}/topology.parm7')
             shutil.copyfile(f'setup/parms_n_pdbs/parms/rst_windows/{y}_0.rst7', f'{x}/coordinates.rst7')
-        for x in [min_wt_dir, min_mt_dir]:
             shutil.copyfile('setup/tmpls/minimize_tmpl/minimization.in', f'{x}/minimization.in')
             shutil.copyfile('setup/tmpls/minimize_tmpl/minimize.sh', f'{x}/minimize.sh')
             replace_dict_min = {
