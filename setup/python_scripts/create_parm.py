@@ -124,7 +124,11 @@ def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncat
         multiplier = get_data_n_general.get_multiplier(windows[i], functional, truncate)
         for atom in atom_numbers:
             value = residue_details[residue_details['ATOM'] == atom][propty].iloc[0]
-            new_value = multiplier*value
+            # Take into account the lowest limit of 0.1 Angstrom for GB Radius
+            if propty != 'GB Radius':
+                new_value = multiplier*value
+            elif propty == 'GB Radius':
+                new_value = multiplier*(value-0.1) + 0.1
             parmed.tools.change(parms_list[i], propty_pd_to_parmed[propty], f'@{atom}', f'{new_value}').execute()
         #print(str(parmed.tools.printDetails(parms_list[i], f':{residue_mask}')))
     return parms_list
