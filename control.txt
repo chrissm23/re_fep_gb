@@ -5,6 +5,4 @@ function_GB=linear
 function_ele=linear
 function_Rlj=linear
 function_epsilonlj=linear
-windows1=($(seq 0.0 0.05 1.0))
-windows1+=()
-windows=($(printf "%s\n" "${windows1[@]}" | sort -n))
+n_windows_per_topology=16

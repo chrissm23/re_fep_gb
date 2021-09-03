@@ -50,7 +50,8 @@ class MutationReGbFe:
         self.chains_to_mutate_str = control_dict['chains']
         self.chains_to_mutate_int = None
         self.functions = [control_dict['function_GB'], control_dict['function_ele'], control_dict['function_Rlj'], control_dict['function_epsilonlj']]
-        self.windows = control_dict['windows'].tolist()
+        self.n_windows = control_dict['n_windows']
+        self.windows = np.linspace(0, 1, 16).tolist()
         # Read PDBs into pandas dataframe and delete hydrogens
         self.wt_pdb_path = wt_structure_path
         self.mt_pdb_path = None
@@ -207,37 +208,52 @@ class MutationReGbFe:
         parm_files_mt = [x for x in parm_files if x[:2]=='mt']
         parm_files_wt.sort(key=sortParmPaths_numerically, reverse=True)
         parm_files_wt = [parm_files_wt[-1]] + parm_files_wt[:-1]
-        parm_files_mt.sort(key=sortParmPaths_numerically)
-        parm_files_mt = parm_files_mt[1:] + [parm_files_mt[0]]
-        parm_files = parm_files_wt + parm_files_mt
-        parm_files_str = '\n'.join(parm_files)
+        parm_files_mt.sort(key=sortParmPaths_numerically, reverse=True)
+        parm_files_mt = [parm_files_mt[-1]] + parm_files_mt[:-1]
+        parm_files_wt_str = '\n'.join(parm_files_wt)
+        parm_files_mt_str = '\n'.join(parm_files_mt)
 
         equilibration_dir = 'FE/equilibration'
         re_dir = 'FE/RE'
 
-        # Create directories for equilibration and copy templates to them
-        for i in range(len(parm_files)):
-            if not os.path.exists(f'{equilibration_dir}/{i}'):
-                os.makedirs(f'{equilibration_dir}/{i}')
-            shutil.copyfile('setup/tmpls/equilibration_tmpl/heat.in', f'{equilibration_dir}/{i}/heat.in')
-            shutil.copyfile('setup/tmpls/equilibration_tmpl/equilibration.in', f'{equilibration_dir}/{i}/equilibration.in')
-            shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{parm_files[i]}', f'{equilibration_dir}/{i}/topology.parm7')
-            if i == 0:
-                shutil.copyfile('FE/minimization/minimization.rst7', f'{equilibration_dir}/{i}/minimization.rst7')
-
-        # Copy files to RE directory
-        shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{re_dir}/groupfile.ref')
-        shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{re_dir}/mdin.ref')
-        shutil.copyfile('setup/tmpls/re_tmpls/hamiltonians.tmpl', f'{re_dir}/hamiltonians.dat')
-        replace_dict = {
-            "%files%": parm_files_str
-        }
-        get_data_n_general.replace_in_file(f'{re_dir}/hamiltonians.dat', replace_dict)
-        shutil.copyfile('setup/tmpls/re_tmpls/generate_remd_inputs.sh', f'{re_dir}/generate_remd_inputs.sh')
-        get_data_n_general.make_executable(f'{re_dir}/generate_remd_inputs.sh')
-        subprocess.call(f'{re_dir}/generate_remd_inputs.sh')
-        for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows'):
-            shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{re_dir}/{x}')
+        def copy_re_equil_files(wt_or_mt):
+            # Check which files are being copied
+            if wt_or_mt == 'WT':
+                equil_dir = equilibration_dir + '/WT'
+                rep_dir = re_dir + '/WT'
+                parm_files_topology = parm_files_wt
+                parm_files_topology_str = parm_files_wt_str
+            elif wt_or_mt == 'MT':
+                equil_dir = equilibration_dir + '/MT'
+                rep_dir = re_dir + '/MT'
+                parm_files_topology = parm_files_mt
+                parm_files_topology_str = parm_files_mt_str
+            # Create directories for equilibration and copy templates to them
+            for i in range(len(parm_files_topology)):
+                if not os.path.exists(f'{equil_dir}/{i}'):
+                    os.makedirs(f'{equil_dir}/{i}')
+                shutil.copyfile('setup/tmpls/equilibration_tmpl/heat.in', f'{equil_dir}/{i}/heat.in')
+                shutil.copyfile('setup/tmpls/equilibration_tmpl/equilibration.in', f'{equil_dir}/{i}/equilibration.in')
+                shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{parm_files_topology[i]}', f'{equil_dir}/{i}/topology.parm7')
+                if i == 0:
+                    shutil.copyfile('FE/minimization/minimization.rst7', f'{equil_dir}/{i}/minimization.rst7')
+                # Copy files to RE directory
+                shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{rep_dir}/groupfile.ref')
+                shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{rep_dir}/mdin.ref')
+                shutil.copyfile('setup/tmpls/re_tmpls/hamiltonians.tmpl', f'{rep_dir}/hamiltonians.dat')
+                replace_dict = {
+                    "%files%": parm_files_topology_str
+                }
+                get_data_n_general.replace_in_file(f'{rep_dir}/hamiltonians.dat', replace_dict)
+                shutil.copyfile('setup/tmpls/re_tmpls/generate_remd_inputs.sh', f'{rep_dir}/generate_remd_inputs.sh')
+                get_data_n_general.make_executable(f'{rep_dir}/generate_remd_inputs.sh')
+                subprocess.call(f'{rep_dir}/generate_remd_inputs.sh')
+                for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows'):
+                    shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{rep_dir}/{x}')
+        
+        for x in ['WT', 'MT']:
+            copy_re_equil_files(x)
+                 
 
     def create_FE_dir(self):
         """Creates directory with all required files and scripts to setup and run equilibration and replica exchange"""
@@ -247,44 +263,59 @@ class MutationReGbFe:
         if not os.path.exists(fe_dir):
             os.makedirs(fe_dir)
         
+        # Path of directories
         equilibration_dir = 'FE/equilibration'
-        re_dir = 'FE/RE'
-        minimization_dir = 'FE/minimization'
+        equil_wt_dir = 'FE/equilibration/WT'
+        equil_mt_dir = 'FE/equilibration/MT'
 
-        for x in [equilibration_dir, re_dir, minimization_dir]:
+        re_dir = 'FE/RE'
+        re_wt_dir = 'FE/RE/WT'
+        re_mt_dir = 'FE/RE/MT'
+
+        minimization_dir = 'FE/minimization'
+        min_wt_dir = 'FE/minimization/WT'
+        min_mt_dir = 'FE/minimization/MT'
+
+        for x in [equilibration_dir, equil_wt_dir, equil_mt_dir, re_dir, re_wt_dir, re_mt_dir, minimization_dir, min_wt_dir, min_mt_dir]:
             if not os.path.exists(x):
                 os.makedirs(x)
 
-        # Copy files for minimization of WT
-        shutil.copyfile('setup/tmpls/minimize_tmpl/minimization.in', f'{minimization_dir}/minimization.in')
-        shutil.copyfile('setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7', f'{minimization_dir}/topology.parm7')
-        shutil.copyfile('setup/parms_n_pdbs/parms/rst_windows/wt_0.rst7', f'{minimization_dir}/coordinates.rst7')
-        shutil.copyfile('setup/tmpls/minimize_tmpl/minimize.sh', f'{minimization_dir}/minimize.sh')
-        # Minimize WT
-        get_data_n_general.make_executable(f'{minimization_dir}/minimize.sh')
-        subprocess.call(f'{minimization_dir}/minimize.sh')
+        # Copy files for minimization of WT and MT
+        for x,y in zip([min_wt_dir, min_mt_dir], ['wt', 'mt']):
+            shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{y}_0.parm7', f'{x}/topology.parm7')
+            shutil.copyfile(f'setup/parms_n_pdbs/parms/rst_windows/{y}_0.rst7', f'{x}/coordinates.rst7')
+        for x in [min_wt_dir, min_mt_dir]:
+            shutil.copyfile('setup/tmpls/minimize_tmpl/minimization.in', f'{x}/minimization.in')
+            shutil.copyfile('setup/tmpls/minimize_tmpl/minimize.sh', f'{x}/minimize.sh')
+            # Minimize WT and WT
+            get_data_n_general.make_executable(f'{x}/minimize.sh')
+            subprocess.call(f'{x}/minimize.sh')
 
         # Copy slurm template for equilibration
-        shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_equilibration.tmpl', 'FE/submit_equilibration.slurm')
-        replace_dict_equil = {
-            '%residue_number%': str(self.residue_position),
-            '%aminoacid_mutant%': str(self.residue_mutant)
-        }
-        get_data_n_general.replace_in_file('FE/submit_equilibration.slurm', replace_dict_equil)
+        for wt_or_mt in ['WT', 'MT']:
+            shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_equilibration.tmpl', f'FE/equilibration/submit_equilibration_{wt_or_mt}.slurm')
+            replace_dict_equil = {
+                '%residue_number%': str(self.residue_position),
+                '%aminoacid_mutant%': str(self.residue_mutant),
+                '%wt_or_mt%': wt_or_mt
+            }
+            get_data_n_general.replace_in_file(f'FE/equilibration/submit_equilibration_{wt_or_mt}.slurm', replace_dict_equil)
         
         # Copy slurm template for remd
-        n_replicas = 2*len(self.windows) - 1
+        n_replicas = self.n_windows
         n_nodes = n_replicas//8 + (n_replicas%8 > 0)
         n_replica_by_nodes = 8
-        shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_remd.tmpl', 'FE/submit_remd.slurm')
-        replace_dict_remd = {
-            '%residue_number%': str(self.residue_position),
-            '%aminoacid_mutant%': str(self.residue_mutant),
-            '%n_nodes%': str(n_nodes),
-            '%n_replicas%': str(n_replicas),
-            '%n_replica_by_nodes%': str(n_replica_by_nodes)
-        }
-        get_data_n_general.replace_in_file('FE/submit_remd.slurm', replace_dict_remd)
-        
+        for wt_or_mt in ['WT', 'MT']:
+            shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_remd.tmpl', f'FE/RE/submit_remd_{wt_or_mt}.slurm')
+            replace_dict_remd = {
+                '%residue_number%': str(self.residue_position),
+                '%aminoacid_mutant%': str(self.residue_mutant),
+                '%n_nodes%': str(n_nodes),
+                '%n_replicas%': str(n_replicas),
+                '%n_replica_by_nodes%': str(n_replica_by_nodes),
+                '%wt_or_mt%': wt_or_mt
+            }
+            get_data_n_general.replace_in_file(f'FE/RE/submit_remd_{wt_or_mt}.slurm', replace_dict_remd)
         self.create_RE_n_equil_files()
+
         print("Done.")

@@ -22,18 +22,8 @@ def read_input(control_file):
             control = line.split('=')
             # Create control dictionary
             parameter_name = control[0].strip()
-            if parameter_name == 'windows1': # Get the sequence of windows
-                sequence = control[1].strip().partition('seq ')[2].partition('))')[0]
-                sequence_parms = sequence.split()
-                control_dict['windows'] = np.arange(float(sequence_parms[0]), float(sequence_parms[2]), float(sequence_parms[1]))
-                control_dict['windows'] =  np.append(control_dict['windows'], float(sequence_parms[2]))
-            elif parameter_name == 'windows1+': # Get custom windows
-                additional_sequence = control[1].strip().partition('(')[2].partition(')')[0]
-                if additional_sequence:
-                    additional_windows = [float(x) for x in additional_sequence.split()]
-                    additional_windows = np.array(additional_windows)
-                    control_dict['windows'] = np.concatenate([control_dict['windows'], additional_windows])
-                    control_dict['windows'] = np.sort(control_dict['windows'])
+            if parameter_name == 'n_windows_per_topology': # Get the sequence of windows
+                control_dict['n_windows'] = int(control[1].strip())
             elif parameter_name == 'res_pos': # Get position of the mutation(s)
                 residue_position = control[1].strip().split(',')
                 if len(residue_position) > 1:
@@ -88,7 +78,7 @@ def read_input(control_file):
         raise Exception("\'res_mut\' parameter must be either a single amino acid or same number of amino acids as number of chains")
     if number_position > 1 and number_position != number_chains:
         raise Exception("\'res_pos\' parameter must be either a single residue number or same number of residue numbers as number of chains")
-    parameters = ['windows', 'residue_position', 'residue_mutant', 'chains', 'function_GB', 'function_ele', 'function_Rlj', 'function_epsilonlj']
+    parameters = ['n_windows', 'residue_position', 'residue_mutant', 'chains', 'function_GB', 'function_ele', 'function_Rlj', 'function_epsilonlj']
     if not all(x in control_dict.keys() for x in parameters):
         diff_list = [x for x in parameters if x not in control_dict.keys()]
         raise Exception(f'Missing parameters {diff_list}')

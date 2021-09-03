@@ -2,7 +2,7 @@
 #
 # Submit equilibration simulations to run on the cluster.
 #
-#SBATCH --job-name=%residue_number%_%aminoacid_mutant%_equil
+#SBATCH --job-name=%residue_number%_%aminoacid_mutant%_equil_%wt_or_mt%
 #SBATCH --time=1-23:59:59
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -13,7 +13,7 @@
 
 module load amber
 
-cd equilibration
+cd %wt_or_mt%
 
 for i in $(ls -d * | sort -n); do
        cd $i
@@ -36,10 +36,10 @@ for i in $(ls -d * | sort -n); do
 	       -r equilibration.rst7 -x equilibration.nc \
 	       -l equilibration.log
 
-       if [ $i < 9 ]; then
-	       cp equilibration.rst7 ../../RE/equil.rep.00$((i+1))
+       if [ "$i" -lt 9 ]; then
+	       cp equilibration.rst7 ../../../RE/%wt_or_mt%/equil.rep.00$((i+1))
        else
-	       cp equilibration.rst7 ../../RE/equil.rep.0$((i+1))
+	       cp equilibration.rst7 ../../../RE/%wt_or_mt%/equil.rep.0$((i+1))
        fi
        
        cd ..

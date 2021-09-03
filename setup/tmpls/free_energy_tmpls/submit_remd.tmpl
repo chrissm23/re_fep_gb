@@ -2,7 +2,7 @@
 #
 # Submit REMD to cluster
 #
-#SBATCH --job-name=%residue_number%_%aminoacid_mutant%_remd
+#SBATCH --job-name=%residue_number%_%aminoacid_mutant%_remd_%wt_or_mt%
 #SBATCH --time=4-23:59:59
 #SBATCH --nodes=%n_nodes% #n_nodes = n_replicas/8
 #SBATCH --greps=gpu:1
@@ -15,7 +15,7 @@
 
 module load amber
 
-cd RE
+cd %wt_or_mt%
 
 echo "Running H-REMD..."
 mpirun -n %n_replicas% pmemd.cuda.MPI -ng %n_replicas% -groupfile groupfile \
