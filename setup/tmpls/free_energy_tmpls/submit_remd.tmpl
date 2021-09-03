@@ -5,7 +5,7 @@
 #SBATCH --job-name=%residue_number%_%aminoacid_mutant%_remd_%wt_or_mt%
 #SBATCH --time=4-23:59:59
 #SBATCH --nodes=%n_nodes% #n_nodes = n_replicas/8
-#SBATCH --greps=gpu:1
+#SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=1
 #SBATCH --ntasks-per-node=%n_replica_by_nodes% #n_replica divided my n_nodes%
 ##SBATCH --ntasks=%n_tasks%
