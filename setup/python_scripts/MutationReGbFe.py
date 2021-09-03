@@ -237,19 +237,19 @@ class MutationReGbFe:
                 shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{parm_files_topology[i]}', f'{equil_dir}/{i}/topology.parm7')
                 if i == 0:
                     shutil.copyfile(f'FE/minimization/{wt_or_mt}/minimization.rst7', f'{equil_dir}/{i}/minimization.rst7')
-                # Copy files to RE directory
-                shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{rep_dir}/groupfile.ref')
-                shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{rep_dir}/mdin.ref')
-                shutil.copyfile('setup/tmpls/re_tmpls/hamiltonians.tmpl', f'{rep_dir}/hamiltonians.dat')
-                replace_dict = {
-                    "%files%": parm_files_topology_str
-                }
-                get_data_n_general.replace_in_file(f'{rep_dir}/hamiltonians.dat', replace_dict)
-                shutil.copyfile('setup/tmpls/re_tmpls/generate_remd_inputs.sh', f'{rep_dir}/generate_remd_inputs.sh')
-                get_data_n_general.make_executable(f'{rep_dir}/generate_remd_inputs.sh')
-                subprocess.call(f'{rep_dir}/generate_remd_inputs.sh')
-                for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows'):
-                    shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{rep_dir}/{x}')
+            # Copy files to RE directory
+            shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{rep_dir}/groupfile.ref')
+            shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{rep_dir}/mdin.ref')
+            shutil.copyfile('setup/tmpls/re_tmpls/hamiltonians.tmpl', f'{rep_dir}/hamiltonians.dat')
+            replace_dict = {
+                "%files%": parm_files_topology_str
+            }
+            get_data_n_general.replace_in_file(f'{rep_dir}/hamiltonians.dat', replace_dict)
+            shutil.copyfile('setup/tmpls/re_tmpls/generate_remd_inputs.sh', f'{rep_dir}/generate_remd_inputs.sh')
+            get_data_n_general.make_executable(f'{rep_dir}/generate_remd_inputs.sh')
+            subprocess.call(f'{rep_dir}/generate_remd_inputs.sh')
+            for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows'):
+                shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{rep_dir}/{x}')
         
         for x in ['WT', 'MT']:
             copy_re_equil_files(x)
