@@ -97,13 +97,21 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
                 atom_type_nonmut = get_data_n_general.ljtypes_str_to_pd(str(parmed.tools.printLJTypes(parmed_object, f'@{mask_nonmutant}')))['LJ Type'][0]
 
                 # Get LJ Radius for atom type pair and calculate new LJ Radius
-                R_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
-                    ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['R_ij'].iloc[0]
-                new_R_ij = multiplier_R*R_ij
+                A_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
+                    ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['A_ij'].iloc[0]
+                new_A_ij = multiplier_R*A_ij
                 # Get LJ epsilon for atom type pair and calculate new LJ epsilon
-                Eps_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
-                    ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['Eps_ij'].iloc[0]
-                new_Eps_ij = multiplier_eps*Eps_ij
+                B_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
+                    ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['B_ij'].iloc[0]
+                new_B_ij = multiplier_eps*B_ij
+                if new_A_ij != 0:
+                    new_Eps_ij = new_B_ij*new_B_ij/(4*new_A_ij)
+                else:
+                    new_Eps_ij = 0
+                if new_B_ij != 0:
+                    new_R_ij = np.power(2*new_A_ij/new_B_ij, 1/6)
+                else:
+                    new_R_ij = 0
 
                 # Change LJ parameters for atom type pair
                 parmed.tools.changeLJPair(new_parms[i], f'@{mask_mutant}', f'@{mask_nonmutant}', f'{new_R_ij}', f'{new_Eps_ij}').execute()

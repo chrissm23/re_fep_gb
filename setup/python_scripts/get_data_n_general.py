@@ -15,7 +15,7 @@ def read_input(control_file):
     """Reads control.txt and outputs a dictionary with control parameters."""
     control_dict = {} # Dictionary to store parameters
     functions = [] # List to store functional relationship of chan
-    possible_functions = ['linear', 'cuadratic']
+    possible_functions = ['linear', 'cuadratic', 'sqrt']
     with open(control_file, 'r') as cf:
         lines = cf.readlines()
         for line in lines:
@@ -47,18 +47,26 @@ def read_input(control_file):
                 functional = control[1].strip()
                 if functional in possible_functions:
                     control_dict['function_GB'] = functional
+                else:
+                    raise Exception('Function for function_GB not recognized.')
             elif parameter_name == 'function_ele':
                 functional = control[1].strip()
                 if functional in possible_functions:
                     control_dict['function_ele'] = functional
+                else:
+                    raise Exception('Function for function_ele not recognized.')
             elif parameter_name == 'function_Rlj':
                 functional = control[1].strip()
                 if functional in possible_functions:
                     control_dict['function_Rlj'] = functional
+                else:
+                    raise Exception('Function for function_Rlj not recognized.')
             elif parameter_name == 'function_epsilonlj':
                 functional = control[1].strip()
                 if functional in possible_functions:
                     control_dict['function_epsilonlj'] = functional
+                else:
+                    raise Exception('Function for function_epsilonlj not recognized.')
     
     # Check for unexpected number of values in the control parameters
     if isinstance(control_dict['chains'], list):
@@ -154,12 +162,14 @@ def ljmatrix_str_to_pd(string):
     for line in lines:
         row_list = line.split()
         table_list.append([row_list[1].strip().partition('[')[2].partition(']')[0], row_list[3].strip().partition('[')[2].partition(']')[0], 
-            row_list[-2], row_list[-1]])
+            row_list[4], row_list[5], row_list[6], row_list[7]])
 
     table_np = np.array(table_list)
-    table_pd = pd.DataFrame(table_np, columns=['Atom Type 1', 'Atom Type 2', 'R_ij', 'Eps_ij'])
+    table_pd = pd.DataFrame(table_np, columns=['Atom Type 1', 'Atom Type 2', 'A_ij', 'B_ij', 'R_ij', 'Eps_ij'])
     table_pd['Atom Type 1'] = pd.to_numeric(table_pd['Atom Type 1'], downcast="integer")
     table_pd['Atom Type 2'] = pd.to_numeric(table_pd['Atom Type 2'], downcast="integer")
+    table_pd['A_ij'] = pd.to_numeric(table_pd['A_ij'], downcast="float")
+    table_pd['B_ij'] = pd.to_numeric(table_pd['B_ij'], downcast="float")
     table_pd['R_ij'] = pd.to_numeric(table_pd['R_ij'], downcast="float")
     table_pd['Eps_ij'] = pd.to_numeric(table_pd['Eps_ij'], downcast="float")
     return table_pd
@@ -170,7 +180,7 @@ def get_multiplier(window, functional, truncate=False):
     x_1 = 1
     a = 1
     if truncate == True:
-        x_0 = 0.3
+        x_0 = 0.5
         b = x_0*x_0/(1-x_0)
         c = -b
     else:
@@ -184,5 +194,10 @@ def get_multiplier(window, functional, truncate=False):
             multiplier = y_1/(x_1-x_0)*(window - x_0)
         if functional == 'cuadratic':
             multiplier = window*(a*window + b) + c
+        if functional == 'sqrt':
+            if truncate == True:
+                raise Exception('I have not yet implemented the truncate function with the square root scaling.')
+            else:
+                multiplier = np.sqrt(window)
 
     return multiplier
