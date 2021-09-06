@@ -5,4 +5,4 @@ function_GB=linear
 function_ele=linear
 function_Rlj=linear
 function_epsilonlj=linear
-n_windows_per_topology=16
+n_windows_per_topology=32

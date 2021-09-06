@@ -51,7 +51,7 @@ class MutationReGbFe:
         self.chains_to_mutate_int = None
         self.functions = [control_dict['function_GB'], control_dict['function_ele'], control_dict['function_Rlj'], control_dict['function_epsilonlj']]
         self.n_windows = control_dict['n_windows']
-        self.windows = np.linspace(0, 1, 16).tolist()
+        self.windows = np.linspace(0, 1, self.n_windows).tolist()
         # Read PDBs into pandas dataframe and delete hydrogens
         self.wt_pdb_path = wt_structure_path
         self.mt_pdb_path = None
