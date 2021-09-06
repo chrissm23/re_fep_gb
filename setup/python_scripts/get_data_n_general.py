@@ -170,9 +170,9 @@ def get_multiplier(window, functional, truncate=False):
     x_1 = 1
     a = 1
     if truncate == True:
-        x_0 = 0.2
-        b = 0.05
-        c = -0.05
+        x_0 = 0.3
+        b = x_0*x_0/(1-x_0)
+        c = -b
     else:
         x_0 = 0
         b = 0
