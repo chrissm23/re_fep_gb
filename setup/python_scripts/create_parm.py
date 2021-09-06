@@ -118,6 +118,7 @@ def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncat
         'GB Radius': 'RADII',
         'GB Screen': 'SCREEN'
     }
+    GBRadius_minimum = 0.15
     for i in range(len(windows)):
         residue_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(parms_list[i], f':{residue_mask}')))
         atom_numbers = residue_details['ATOM'].tolist() # Get atom numbers of mutated residues
@@ -128,7 +129,7 @@ def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncat
             if propty != 'GB Radius':
                 new_value = multiplier*value
             elif propty == 'GB Radius':
-                new_value = multiplier*(value-0.1) + 0.1
+                new_value = multiplier*(value-GBRadius_minimum) + GBRadius_minimum
             parmed.tools.change(parms_list[i], propty_pd_to_parmed[propty], f'@{atom}', f'{new_value}').execute()
         #print(str(parmed.tools.printDetails(parms_list[i], f':{residue_mask}')))
     return parms_list
