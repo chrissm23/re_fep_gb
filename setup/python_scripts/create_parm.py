@@ -87,7 +87,7 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
     # Deep copy parmed object and modify LJ matrix elements
     new_parms = [parmed.amber.AmberParm.from_structure(parmed_object, copy=True) for i in range(len(windows))]
     new_ljmatrix = get_data_n_general.ljmatrix_str_to_pd(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
-    #print(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
+    print(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
     for i in range(len(windows)):
         multiplier_R = get_data_n_general.get_multiplier(windows[i], functions[-2], truncate=False)
         multiplier_eps = get_data_n_general.get_multiplier(windows[i], functions[-1], truncate=False)
@@ -96,26 +96,20 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
             for mask_nonmutant in masks_by_nonmutated_atomtype_str:
                 atom_type_nonmut = get_data_n_general.ljtypes_str_to_pd(str(parmed.tools.printLJTypes(parmed_object, f'@{mask_nonmutant}')))['LJ Type'][0]
 
+                LJRadius_minimum = 0.3
+                LJEps_minimum = 0.007
                 # Get LJ Radius for atom type pair and calculate new LJ Radius
-                A_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
-                    ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['A_ij'].iloc[0]
-                new_A_ij = multiplier_R*A_ij
+                R_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
+                    ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['R_ij'].iloc[0]
+                new_R_ij = multiplier_R*(R_ij - LJRadius_minimum) + LJRadius_minimum
                 # Get LJ epsilon for atom type pair and calculate new LJ epsilon
-                B_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
-                    ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['B_ij'].iloc[0]
-                new_B_ij = multiplier_eps*B_ij
-                if new_A_ij != 0:
-                    new_Eps_ij = new_B_ij*new_B_ij/(4*new_A_ij)
-                else:
-                    new_Eps_ij = 0
-                if new_B_ij != 0:
-                    new_R_ij = np.power(2*new_A_ij/new_B_ij, 1/6)
-                else:
-                    new_R_ij = 0
+                Eps_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
+                    ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['Eps_ij'].iloc[0]
+                new_Eps_ij = multiplier_eps*(Eps_ij - LJEps_minimum) + LJEps_minimum
 
                 # Change LJ parameters for atom type pair
                 parmed.tools.changeLJPair(new_parms[i], f'@{mask_mutant}', f'@{mask_nonmutant}', f'{new_R_ij}', f'{new_Eps_ij}').execute()
-        #print(str(parmed.tools.printLJMatrix(new_parms[i], f':{residue_mask}')))
+        print(str(parmed.tools.printLJMatrix(new_parms[i], f':{residue_mask}')))
 
     return new_parms
 
@@ -126,7 +120,7 @@ def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncat
         'GB Radius': 'RADII',
         'GB Screen': 'SCREEN'
     }
-    GBRadius_minimum = 0.3
+    GBRadius_minimum = 0.1
     for i in range(len(windows)):
         residue_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(parms_list[i], f':{residue_mask}')))
         atom_numbers = residue_details['ATOM'].tolist() # Get atom numbers of mutated residues
@@ -137,7 +131,7 @@ def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncat
             if propty != 'GB Radius':
                 new_value = multiplier*value
             elif propty == 'GB Radius':
-                new_value = multiplier*(value-GBRadius_minimum) + GBRadius_minimum
+                new_value = multiplier*(value - GBRadius_minimum) + GBRadius_minimum
             parmed.tools.change(parms_list[i], propty_pd_to_parmed[propty], f'@{atom}', f'{new_value}').execute()
         #print(str(parmed.tools.printDetails(parms_list[i], f':{residue_mask}')))
     return parms_list
