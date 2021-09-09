@@ -50,7 +50,7 @@ class MutationReGbFe:
         self.chains_to_mutate_int = None
         self.functions = [control_dict['function_GB'], control_dict['function_ele'], control_dict['function_Rlj'], control_dict['function_epsilonlj']]
         self.n_windows = control_dict['n_windows']
-        self.windows = np.linspace(0, 1, self.n_windows).tolist()
+        self.windows = np.linspace(0, 1, self.n_windows).tolist().reverse()
         # Read PDBs into pandas dataframe and delete hydrogens
         self.wt_pdb_path = wt_structure_path
         self.mt_pdb_path = None
@@ -205,10 +205,8 @@ class MutationReGbFe:
         parm_files = [x for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows') if os.path.isfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}')]
         parm_files_wt = [x for x in parm_files if x[:2]=='wt']
         parm_files_mt = [x for x in parm_files if x[:2]=='mt']
-        parm_files_wt.sort(key=sortParmPaths_numerically, reverse=True)
-        parm_files_wt = [parm_files_wt[-1]] + parm_files_wt[:-1]
-        parm_files_mt.sort(key=sortParmPaths_numerically, reverse=True)
-        parm_files_mt = [parm_files_mt[-1]] + parm_files_mt[:-1]
+        parm_files_wt.sort(key=sortParmPaths_numerically)
+        parm_files_mt.sort(key=sortParmPaths_numerically)
         parm_files_wt_str = '\n'.join(parm_files_wt)
         parm_files_mt_str = '\n'.join(parm_files_mt)
 
