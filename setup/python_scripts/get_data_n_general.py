@@ -15,7 +15,7 @@ def read_input(control_file):
     """Reads control.txt and outputs a dictionary with control parameters."""
     control_dict = {} # Dictionary to store parameters
     functions = [] # List to store functional relationship of chan
-    possible_functions = ['linear', 'cuadratic', 'sqrt']
+    possible_functions = ['linear', 'quadratic', 'sqrt', 'root6']
     with open(control_file, 'r') as cf:
         lines = cf.readlines()
         for line in lines:
@@ -174,13 +174,13 @@ def ljmatrix_str_to_pd(string):
     table_pd['Eps_ij'] = pd.to_numeric(table_pd['Eps_ij'], downcast="float")
     return table_pd
 
-def get_multiplier(window, functional, truncate=False):
+def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
     """Calculates multiplier of the parameter according to window from 0 to 1 and functional. If truncate=True multiplier goes to 0 faster than window"""
     y_1 = 1
     x_1 = 1
     a = 1
     if truncate == True:
-        x_0 = 0.9
+        x_0 = 0.3
         b = x_0*x_0/(1-x_0)
         c = -b
     else:
@@ -192,12 +192,17 @@ def get_multiplier(window, functional, truncate=False):
     else:
         if functional == 'linear':
             multiplier = y_1/(x_1-x_0)*(window - x_0)
-        if functional == 'cuadratic':
+        if functional == 'quadratic':
             multiplier = window*(a*window + b) + c
         if functional == 'sqrt':
             if truncate == True:
                 raise Exception('I have not yet implemented the truncate function with the square root scaling.')
             else:
                 multiplier = np.sqrt(window)
+        if functional == 'root6':
+            if truncate == True:
+                raise Exception('I have not yet implemented the truncate function with the 6th root scaling.')
+            else:
+                multiplier = np.power(window, 1/6)
 
     return multiplier

@@ -168,8 +168,8 @@ def create_intermediate_parms(functions, windows, residue_position):
     wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask, 'GB Radius', functions[1], windows[1:], truncate=False)
     mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask, 'GB Radius', functions[1], windows[1:], truncate=False)
 
+    print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}'))
     for i in range(len(wt_parms_GB)):
-        #print(parmed.tools.printDetails(wt_parms_GB[i], f':{residue_mask}'))
+        print(parmed.tools.printDetails(wt_parms_GB[i], f':{residue_mask}'))
         parmed.tools.outparm(wt_parms_GB[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
         parmed.tools.outparm(mt_parms_GB[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()
-    #print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}'))
