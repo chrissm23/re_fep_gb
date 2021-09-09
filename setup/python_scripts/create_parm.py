@@ -120,7 +120,7 @@ def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncat
         'GB Radius': 'RADII',
         'GB Screen': 'SCREEN'
     }
-    GBRadius_minimum = 0.1
+    GBRadius_minimum = 0.2
     for i in range(len(windows)):
         residue_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(parms_list[i], f':{residue_mask}')))
         atom_numbers = residue_details['ATOM'].tolist() # Get atom numbers of mutated residues
@@ -132,6 +132,7 @@ def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncat
                 new_value = multiplier*value
             elif propty == 'GB Radius':
                 new_value = multiplier*(value - GBRadius_minimum) + GBRadius_minimum
+                print(multiplier)
             parmed.tools.change(parms_list[i], propty_pd_to_parmed[propty], f'@{atom}', f'{new_value}').execute()
         #print(str(parmed.tools.printDetails(parms_list[i], f':{residue_mask}')))
     return parms_list
@@ -165,8 +166,8 @@ def create_intermediate_parms(functions, windows, residue_position):
     mt_parms_ele = get_new_Parms(mt_parms_LJ, residue_mask, 'Charge', functions[1], windows[1:], truncate=True)
 
     # Change GB Radius of mutating residues according to windws and functions
-    wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask, 'GB Radius', functions[1], windows[1:], truncate=False)
-    mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask, 'GB Radius', functions[1], windows[1:], truncate=False)
+    wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask, 'GB Radius', functions[0], windows[1:], truncate=False)
+    mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask, 'GB Radius', functions[0], windows[1:], truncate=False)
 
     print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}'))
     for i in range(len(wt_parms_GB)):

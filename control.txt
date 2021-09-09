@@ -1,8 +1,8 @@
 res_pos=34
 res_mut=VAL
 chains=tripeptide
-function_GB=linear
+function_GB=constant
 function_ele=quadratic
-function_Rlj=root6
+function_Rlj=linear
 function_epsilonlj=linear
 n_windows_per_topology=32
