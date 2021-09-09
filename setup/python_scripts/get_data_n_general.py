@@ -187,7 +187,7 @@ def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
         x_0 = 0
         b = 0
         c = 0
-    if window <= x_0:
+    if window < x_0:
         multiplier = 0
     else:
         if functional == 'constant':

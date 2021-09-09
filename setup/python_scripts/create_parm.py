@@ -132,7 +132,7 @@ def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncat
                 new_value = multiplier*value
             elif propty == 'GB Radius':
                 new_value = multiplier*(value - GBRadius_minimum) + GBRadius_minimum
-                print(multiplier)
+                #print(multiplier)
             parmed.tools.change(parms_list[i], propty_pd_to_parmed[propty], f'@{atom}', f'{new_value}').execute()
         #print(str(parmed.tools.printDetails(parms_list[i], f':{residue_mask}')))
     return parms_list
@@ -155,7 +155,7 @@ def create_intermediate_parms(functions, windows, residue_position):
     else:
         residue_mask_list = [str(x) for x in residue_position]
         residue_mask = ','.join(residue_mask_list)
-    residue_mask = residue_mask + '&!@CA,C,O,N'
+    residue_mask = residue_mask + '&!@CA,C,O,N,H'
 
     # Create parms with modified LJ matrix according to windows and functions
     wt_parms_LJ = get_new_LJParms(wt_parmed, residue_mask, functions[-2:], windows[1:])
