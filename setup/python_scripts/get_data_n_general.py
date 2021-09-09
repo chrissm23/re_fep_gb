@@ -180,7 +180,7 @@ def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
     x_1 = 1
     a = 1
     if truncate == True:
-        x_0 = 0.9
+        x_0 = 0.2
         b = x_0*x_0/(1-x_0)
         c = -b
     else:
@@ -197,10 +197,7 @@ def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
         if functional == 'quadratic':
             multiplier = window*(a*window + b) + c
         if functional == 'sqrt':
-            if truncate == True:
-                raise Exception('I have not yet implemented the truncate function with the square root scaling.')
-            else:
-                multiplier = np.sqrt(window)
+            multiplier = np.sqrt((window - x_0)/(1 - x_0))
         if functional == 'root6':
             if truncate == True:
                 raise Exception('I have not yet implemented the truncate function with the 6th root scaling.')
