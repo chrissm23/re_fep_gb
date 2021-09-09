@@ -57,6 +57,7 @@ def DeltaG_FEP(replicas_pd):
     sdfsdf
 
 def DeltaG_BAR(replicas_pd):
+    """Calculate DeltaG using BAR"""
     sdfsfd
 
 if __name__ == '__main__':
