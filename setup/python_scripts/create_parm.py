@@ -97,7 +97,7 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
                 atom_type_nonmut = get_data_n_general.ljtypes_str_to_pd(str(parmed.tools.printLJTypes(parmed_object, f'@{mask_nonmutant}')))['LJ Type'][0]
 
                 LJRadius_minimum = 0.2
-                LJEps_minimum = 0.008
+                LJEps_minimum = 0.009
                 # Get LJ Radius for atom type pair and calculate new LJ Radius
                 R_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
                     ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['R_ij'].iloc[0]
@@ -157,16 +157,16 @@ def create_intermediate_parms(functions, windows, residue_position):
     residue_mask = residue_mask + '&!@CA,C,O,N'
 
     # Create parms with modified LJ matrix according to windows and functions
-    wt_parms_LJ = get_new_LJParms(wt_parmed, residue_mask, functions[-2:], windows[:-1])
-    mt_parms_LJ = get_new_LJParms(mt_parmed, residue_mask, functions[-2:], windows[:-1])
+    wt_parms_LJ = get_new_LJParms(wt_parmed, residue_mask, functions[-2:], windows[1:])
+    mt_parms_LJ = get_new_LJParms(mt_parmed, residue_mask, functions[-2:], windows[1:])
 
     # Change charge of mutating residues according to windows and functions
-    wt_parms_ele = get_new_Parms(wt_parms_LJ, residue_mask, 'Charge', functions[1], windows[:-1], truncate=True)
-    mt_parms_ele = get_new_Parms(mt_parms_LJ, residue_mask, 'Charge', functions[1], windows[:-1], truncate=True)
+    wt_parms_ele = get_new_Parms(wt_parms_LJ, residue_mask, 'Charge', functions[1], windows[1:], truncate=True)
+    mt_parms_ele = get_new_Parms(mt_parms_LJ, residue_mask, 'Charge', functions[1], windows[1:], truncate=True)
 
     # Change GB Radius of mutating residues according to windws and functions
-    wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask, 'GB Radius', functions[1], windows[:-1], truncate=False)
-    mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask, 'GB Radius', functions[1], windows[:-1], truncate=False)
+    wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask, 'GB Radius', functions[1], windows[1:], truncate=False)
+    mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask, 'GB Radius', functions[1], windows[1:], truncate=False)
 
     for i in range(len(wt_parms_GB)):
         #print(parmed.tools.printDetails(wt_parms_GB[i], f':{residue_mask}'))
