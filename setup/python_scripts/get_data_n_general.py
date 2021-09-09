@@ -15,7 +15,7 @@ def read_input(control_file):
     """Reads control.txt and outputs a dictionary with control parameters."""
     control_dict = {} # Dictionary to store parameters
     functions = [] # List to store functional relationship of chan
-    possible_functions = ['linear', 'quadratic', 'sqrt', 'root6']
+    possible_functions = ['constant', 'linear', 'quadratic', 'sqrt', 'root6']
     with open(control_file, 'r') as cf:
         lines = cf.readlines()
         for line in lines:
@@ -190,6 +190,8 @@ def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
     if window <= x_0:
         multiplier = 0
     else:
+        if functional == 'constant':
+            multiplier = 1
         if functional == 'linear':
             multiplier = y_1/(x_1-x_0)*(window - x_0)
         if functional == 'quadratic':
