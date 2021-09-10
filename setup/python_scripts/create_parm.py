@@ -176,25 +176,25 @@ def create_intermediate_parms(functions, windows, residue_position):
     else:
         residue_mask_list = [str(x) for x in residue_position]
         residue_mask = ','.join(residue_mask_list)
-    residue_mask = residue_mask + '&!@CA,C,O,N,H'
+    residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H'
 
     # Create parms with modified LJ matrix according to windows and functions
-    wt_parms_LJ = get_new_LJParms(wt_parmed, residue_mask, functions[-2:], windows[1:])
-    mt_parms_LJ = get_new_LJParms(mt_parmed, residue_mask, functions[-2:], windows[1:])
+    wt_parms_LJ = get_new_LJParms(wt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
+    mt_parms_LJ = get_new_LJParms(mt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
 
     # Change charge of mutating residues according to windows and functions
-    wt_parms_ele = get_new_Parms(wt_parms_LJ, residue_mask, 'Charge', functions[1], windows[1:], truncate=True)
-    mt_parms_ele = get_new_Parms(mt_parms_LJ, residue_mask, 'Charge', functions[1], windows[1:], truncate=True)
+    wt_parms_ele = get_new_Parms(wt_parms_LJ, residue_mask_nobackbone, 'Charge', functions[1], windows[1:], truncate=True)
+    mt_parms_ele = get_new_Parms(mt_parms_LJ, residue_mask_nobackbone, 'Charge', functions[1], windows[1:], truncate=True)
 
     # Change GB Radius of mutating residues according to windws and functions
-    wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask, 'GB Radius', functions[0], windows[1:], truncate=False)
-    mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask, 'GB Radius', functions[0], windows[1:], truncate=False)
+    wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask_nobackbone, 'GB Radius', functions[0], windows[1:], truncate=False)
+    mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask_nobackbone, 'GB Radius', functions[0], windows[1:], truncate=False)
 
     wt_parms_CA = get_CA_Parms(wt_parms_GB, residue_position, functions[1], windows[1:])
     mt_parms_CA = get_CA_Parms(mt_parms_GB, residue_position, functions[1], windows[1:])
 
-    print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}'))
+    print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}&!@C,O,N,H'))
     for i in range(len(wt_parms_CA)):
-        print(parmed.tools.printDetails(wt_parms_CA[i], f':{residue_mask}'))
+        print(parmed.tools.printDetails(wt_parms_CA[i], f':{residue_mask}&!@C,O,N,H'))
         parmed.tools.outparm(wt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
         parmed.tools.outparm(mt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()
