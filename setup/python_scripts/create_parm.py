@@ -143,7 +143,7 @@ def get_CA_Parms(parms_list, residue_position, functional, windows):
         """Compensate the charge of each mutating residue to GLY"""
         # Charge of GLY hydrogens bound to CA
         charge_GLY_hydrogens = 0.1396
-        charge_CA = parmed.tools.netCharge(parm_inter, f':{residue}@CA')
+        charge_CA = parmed.tools.netCharge(parm_inter, f':{residue}@CA').execute()
         charge_CA = round(charge_CA, 4)
         multiplier = get_data_n_general.get_multiplier(window, functional, truncate=True)
         new_charge_CA = charge_CA + (1 - multiplier)*charge_GLY_hydrogens
