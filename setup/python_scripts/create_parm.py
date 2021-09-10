@@ -114,7 +114,7 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
     return new_parms
 
 def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncate):
-    """Changes charge of mutating residues according to functional for the different windows in each parameter file"""
+    """Changes charge or GB radius of mutating residues according to functional for the different windows in each parameter file"""
     propty_pd_to_parmed = {
         'Charge': 'CHARGE',
         'GB Radius': 'RADII',
@@ -135,6 +135,27 @@ def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncat
                 #print(multiplier)
             parmed.tools.change(parms_list[i], propty_pd_to_parmed[propty], f'@{atom}', f'{new_value}').execute()
         #print(str(parmed.tools.printDetails(parms_list[i], f':{residue_mask}')))
+    return parms_list
+
+def get_CA_Parms(parms_list, residue_position, functional, windows):
+    """Changes charge of CA carbon to keep residue charge constant"""
+    def compensate_residue(residue, parm_inter, window):
+        """Compensate the charge of each mutating residue to GLY"""
+        # Charge of GLY hydrogens bound to CA
+        charge_GLY_hydrogens = 0.1396
+        charge_CA = parmed.tools.netCharge(parm_inter, f':{residue}@CA')
+        charge_CA = round(charge_CA, 4)
+        multiplier = get_data_n_general.get_multiplier(window, functional, truncate=True)
+        new_charge_CA = charge_CA + (1 - multiplier)*charge_GLY_hydrogens
+        # Change CA charge
+        parmed.tools.change(parm_inter, 'Charge', f':{residue}@CA', f'{new_charge_CA}').execute()
+
+    for i in range(len(parms_list)):
+        if not isinstance(residue_position, list):
+            compensate_residue(residue_position, parms_list[i], windows[i])
+        else:
+            for residue in residue_position:
+                compensate_residue(residue, parms_list[i], windows[i])
     return parms_list
 
 def create_intermediate_parms(functions, windows, residue_position):
@@ -169,8 +190,11 @@ def create_intermediate_parms(functions, windows, residue_position):
     wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask, 'GB Radius', functions[0], windows[1:], truncate=False)
     mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask, 'GB Radius', functions[0], windows[1:], truncate=False)
 
+    wt_parms_CA = get_CA_Parms(wt_parms_GB, residue_position, functions[1], windows[1:])
+    mt_parms_CA = get_CA_Parms(mt_parms_GB, residue_position, functions[1], windows[1:])
+
     print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}'))
-    for i in range(len(wt_parms_GB)):
-        print(parmed.tools.printDetails(wt_parms_GB[i], f':{residue_mask}'))
-        parmed.tools.outparm(wt_parms_GB[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
-        parmed.tools.outparm(mt_parms_GB[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()
+    for i in range(len(wt_parms_CA)):
+        print(parmed.tools.printDetails(wt_parms_CA[i], f':{residue_mask}'))
+        parmed.tools.outparm(wt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
+        parmed.tools.outparm(mt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()
