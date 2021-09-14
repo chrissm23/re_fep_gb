@@ -1,7 +1,7 @@
 Minimization
  &cntrl
   imin = 1, ntmin = 2, maxcyc = 2000, igb = 5,
-  ntpr = 20
+  ntpr = 20,
   dx0 = 1.0D-7
   ntb = 0,
  /

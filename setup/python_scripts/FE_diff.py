@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.constants import k as k_B
+from scipy.constants import N_A
 import pandas as pd
 import os
 import pymbar
@@ -54,11 +56,25 @@ def read_remlog(path):
 
 def DeltaG_FEP(replicas_pd):
     """Calculate DeltaG using free energy perturbation"""
-    sdfsdf
+    exp_sum_forward = np.zeros(len(replicas_pd[0].index)) # Array for sum of exponentials for forward free energy difference
+    exp_sum_backward = np.zeros(len(replicas_pd[0].index)) # Array for sum of exponentials for backward free energy difference
+    Temp = replicas_pd[0]['Temperature'].iloc[0] # Temperature
+    beta = 4184/(k_B*Temp*N_A)
+
+    for j in range(len(replicas_pd)):
+        if j%2 == 0: # Exchanges starting with 1 to last replica
+            
+            E_ip1_forward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_2)'].to_numpy()
+            E_i_forward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_1)'].to_numpy()
+
+        elif j%2 == 1: # Exchanges starting with 1 to 2
+            
+            E_ip1_forward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_2)'].to_numpy()
+            E_i_forward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_1)'].to_numpy()
 
 def DeltaG_BAR(replicas_pd):
     """Calculate DeltaG using BAR"""
     sdfsfd
 
 if __name__ == '__main__':
-    replicas_pd = read_remlog('/home/christiansustay/Documents/Thesis_simulations/Solvation_energy_checks/C_terminus/L34V_PBSA/re_fep_gb/FE/RE/WT/rem.log')
+    replicas_pd = read_remlog('/home/christiansustay/Desktop/rem_wt.log')
