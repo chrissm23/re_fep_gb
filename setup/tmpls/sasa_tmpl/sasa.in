@@ -6,7 +6,7 @@ Equilibration
   ntb = 0, igb = 5, gbsa = 1,
   ntp = 0, pres0 = 1.0, taup = 2.0,
   ioutfm = 1, iwrap = 0,
-  ntwx = 1000, ntpr = 1000, ntwr = 5000,
+  ntwx = 100, ntpr = 100, ntwr = 500,
  /
 
  &ewald
