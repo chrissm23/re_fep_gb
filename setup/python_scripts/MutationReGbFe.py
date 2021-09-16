@@ -233,8 +233,8 @@ class MutationReGbFe:
             for i in range(len(parm_files_topology)):
                 if not os.path.exists(f'{equil_dir}/{i}'):
                     os.makedirs(f'{equil_dir}/{i}')
-                shutil.copyfile('setup/tmpls/equilibration_tmpl/heat.in', f'{equil_dir}/{i}/heat.in')
-                shutil.copyfile('setup/tmpls/equilibration_tmpl/equilibration.in', f'{equil_dir}/{i}/equilibration.in')
+                shutil.copyfile('setup/tmpls/equilibration_tmpls/heat.in', f'{equil_dir}/{i}/heat.in')
+                shutil.copyfile('setup/tmpls/equilibration_tmpls/equilibration.in', f'{equil_dir}/{i}/equilibration.in')
                 shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{parm_files_topology[i]}', f'{equil_dir}/{i}/topology.parm7')
                 if i == 0:
                     shutil.copyfile(f'FE/minimization/{wt_or_mt}/minimization.rst7', f'{equil_dir}/{i}/minimization.rst7')
@@ -256,7 +256,7 @@ class MutationReGbFe:
             for x in parm_files_topology:
                 shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{rep_dir}/{x}')
             # Copy files to SASA directory
-            shutil.copyfile('setup/tmpls/sasa_tmpls/sasa.in', f'{surf_dir}/sasa.in')
+            shutil.copyfile('setup/tmpls/sasa_tmpl/sasa.in', f'{surf_dir}/sasa.in')
             shutil.copyfile('setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7', f'{surf_dir}/topology.parm7')
         
         for x in ['WT', 'MT']:
