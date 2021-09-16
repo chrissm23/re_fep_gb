@@ -213,17 +213,20 @@ class MutationReGbFe:
 
         equilibration_dir = 'FE/equilibration'
         re_dir = 'FE/RE'
+        sasa_dir = 'FE/SASA'
 
         def copy_re_equil_files(wt_or_mt):
             # Check which files are being copied
             if wt_or_mt == 'WT':
                 equil_dir = equilibration_dir + '/WT'
                 rep_dir = re_dir + '/WT'
+                surf_dir = sasa_dir + '/WT'
                 parm_files_topology = parm_files_wt
                 parm_files_topology_str = parm_files_wt_str
             elif wt_or_mt == 'MT':
                 equil_dir = equilibration_dir + '/MT'
                 rep_dir = re_dir + '/MT'
+                surf_dir = sasa_dir + '/MT'
                 parm_files_topology = parm_files_mt
                 parm_files_topology_str = parm_files_mt_str
             # Create directories for equilibration and copy templates to them
@@ -250,8 +253,11 @@ class MutationReGbFe:
             get_data_n_general.replace_in_file(f'{rep_dir}/generate_remd_inputs.sh', replace_dict_genremd)
             get_data_n_general.make_executable(f'{rep_dir}/generate_remd_inputs.sh')
             subprocess.call(f'{rep_dir}/generate_remd_inputs.sh')
-            for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows'):
+            for x in parm_files_topology:
                 shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{rep_dir}/{x}')
+            # Copy files to SASA directory
+            shutil.copyfile('setup/tmpls/sasa_tmpls/sasa.in', f'{surf_dir}/sasa.in')
+            shutil.copyfile('setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7', f'{surf_dir}/topology.parm7')
         
         for x in ['WT', 'MT']:
             copy_re_equil_files(x)
@@ -278,7 +284,12 @@ class MutationReGbFe:
         min_wt_dir = 'FE/minimization/WT'
         min_mt_dir = 'FE/minimization/MT'
 
-        for x in [equilibration_dir, equil_wt_dir, equil_mt_dir, re_dir, re_wt_dir, re_mt_dir, minimization_dir, min_wt_dir, min_mt_dir]:
+        sasa_dir = 'FE/SASA'
+        sasa_wt_dir = 'FE/SASA/WT'
+        sasa_mt_dir = 'FE/SASA/MT'
+
+        for x in [equilibration_dir, equil_wt_dir, equil_mt_dir, re_dir, re_wt_dir, re_mt_dir, 
+            minimization_dir, min_wt_dir, min_mt_dir, sasa_dir, sasa_wt_dir, sasa_mt_dir]:
             if not os.path.exists(x):
                 os.makedirs(x)
 
@@ -321,6 +332,11 @@ class MutationReGbFe:
                 '%wt_or_mt%': wt_or_mt
             }
             get_data_n_general.replace_in_file(f'FE/RE/submit_remd_{wt_or_mt}.slurm', replace_dict_remd)
+        
+        # Copy bash file to run SASA
+        shutil.copyfile('setup/tmpls/free_energy_tmpls/surface_area.sh', 'FE/SASA/surface_area.sh')
+        get_data_n_general.make_executable('FE/SASA/surface_area.sh')
+        
         self.create_RE_n_equil_files()
 
         print("Done.")
