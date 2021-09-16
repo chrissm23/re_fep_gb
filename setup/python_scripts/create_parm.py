@@ -87,7 +87,7 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
     # Deep copy parmed object and modify LJ matrix elements
     new_parms = [parmed.amber.AmberParm.from_structure(parmed_object, copy=True) for i in range(len(windows))]
     new_ljmatrix = get_data_n_general.ljmatrix_str_to_pd(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
-    print(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
+    #print(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
     for i in range(len(windows)):
         multiplier_R = get_data_n_general.get_multiplier(windows[i], functions[-2], truncate=False)
         multiplier_eps = get_data_n_general.get_multiplier(windows[i], functions[-1], truncate=False)
@@ -109,7 +109,7 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
 
                 # Change LJ parameters for atom type pair
                 parmed.tools.changeLJPair(new_parms[i], f'@{mask_mutant}', f'@{mask_nonmutant}', f'{new_R_ij}', f'{new_Eps_ij}').execute()
-        print(str(parmed.tools.printLJMatrix(new_parms[i], f':{residue_mask}')))
+        #print(str(parmed.tools.printLJMatrix(new_parms[i], f':{residue_mask}')))
 
     return new_parms
 
@@ -196,8 +196,8 @@ def create_intermediate_parms(functions, windows, residue_position):
     wt_parms_CA = get_CA_Parms(wt_parms_GB, residue_position, functions[1], windows[1:])
     mt_parms_CA = get_CA_Parms(mt_parms_GB, residue_position, functions[1], windows[1:])
 
-    print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}&!@C,O,N,H'))
+    #print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}&!@C,O,N,H'))
     for i in range(len(wt_parms_CA)):
-        print(parmed.tools.printDetails(wt_parms_CA[i], f':{residue_mask}&!@C,O,N,H'))
+        #print(parmed.tools.printDetails(wt_parms_CA[i], f':{residue_mask}&!@C,O,N,H'))
         parmed.tools.outparm(wt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
         parmed.tools.outparm(mt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()
