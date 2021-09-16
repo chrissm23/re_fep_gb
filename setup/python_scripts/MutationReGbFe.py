@@ -257,7 +257,7 @@ class MutationReGbFe:
                 shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{rep_dir}/{x}')
             # Copy files to SASA directory
             shutil.copyfile('setup/tmpls/sasa_tmpl/sasa.in', f'{surf_dir}/sasa.in')
-            shutil.copyfile('setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7', f'{surf_dir}/topology.parm7')
+            shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{wt_or_mt.lower()}_0.parm7', f'{surf_dir}/topology.parm7')
         
         for x in ['WT', 'MT']:
             copy_re_equil_files(x)
