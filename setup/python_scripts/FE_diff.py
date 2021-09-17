@@ -185,16 +185,24 @@ if __name__ == '__main__':
     # Get DeltaG for WT and MT
     for wt_or_mt in ['WT', 'MT']:
         print(f'Calculating DeltaG of {wt_or_mt} from H-REMD...')
+        with open("FE_diff.out", "a") as f:
+            print(f'Calculating DeltaG of {wt_or_mt} from H-REMD...', file=f)
         replicas_pd = read_remlog(FE_dir + f'/RE/{wt_or_mt}/rem.log')
         [DeltaG_backward, DeltaG_forward] = DeltaG_FEP(replicas_pd)
         fep_energies.append([DeltaG_forward, DeltaG_backward])
         print(f'Forward DeltaG = {round(DeltaG_forward, 2)}, Backward DeltaG = {round(DeltaG_backward, 2)}')
+        with open("FE_diff.out", "a") as f:
+            print(f'Forward DeltaG = {round(DeltaG_forward, 2)}, Backward DeltaG = {round(DeltaG_backward, 2)}', file=f)
         DeltaG = DeltaG_BAR(replicas_pd)
         bar_energies.append(DeltaG)
         print(f'Forward DeltaG = {round(DeltaG, 2)}')
+        with open("FE_diff.out", "a") as f:
+            print(f'Forward DeltaG = {round(DeltaG, 2)}', file=f)
         E_surf = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
         sasa_energies.append(E_surf)
         print(f'E_surf = {E_surf}')
+        with open("FE_diff.out", "a") as f:
+            print(f'E_surf = {E_surf}', file=f)
     # Get DeltaG difference between WT and MT
     dE_surf = sasa_energies[1] - sasa_energies[0]
     dBAR = bar_energies[0] - bar_energies[1]
@@ -203,3 +211,6 @@ if __name__ == '__main__':
     DDeltaG_fep = dE_surf + dFEP
     print(f'FEP: DeltaDeltaG = {round(DDeltaG_fep, 2)}')
     print(f'BAR: DeltaDeltaG = {round(DDeltaG_bar, 2)}')
+    with open("FE_diff.out", "a") as f:
+        print(f'FEP: DeltaDeltaG = {round(DDeltaG_fep, 2)}', file=f)
+        print(f'BAR: DeltaDeltaG = {round(DDeltaG_bar, 2)}', file=f)
