@@ -86,8 +86,8 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
 
     # Deep copy parmed object and modify LJ matrix elements
     new_parms = [parmed.amber.AmberParm.from_structure(parmed_object, copy=True) for i in range(len(windows))]
-    new_ljmatrix = get_data_n_general.ljmatrix_str_to_pd(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
     #print(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
+    new_ljmatrix = get_data_n_general.ljmatrix_str_to_pd(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
     for i in range(len(windows)):
         multiplier_R = get_data_n_general.get_multiplier(windows[i], functions[-2], truncate=False)
         multiplier_eps = get_data_n_general.get_multiplier(windows[i], functions[-1], truncate=False)
