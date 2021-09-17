@@ -178,20 +178,21 @@ def get_SASA(path):
     return E_surf
 
 if __name__ == '__main__':
+    FE_dir = './'
     fep_energies = []
     bar_energies = []
     sasa_energies = []
     # Get DeltaG for WT and MT
     for wt_or_mt in ['WT', 'MT']:
         print(f'Calculating DeltaG of {wt_or_mt} from H-REMD...')
-        replicas_pd = read_remlog(f'/RE/{wt_or_mt}/rem.log')
+        replicas_pd = read_remlog(FE_dir + f'/RE/{wt_or_mt}/rem.log')
         [DeltaG_backward, DeltaG_forward] = DeltaG_FEP(replicas_pd)
         fep_energies.append([DeltaG_forward, DeltaG_backward])
         print(f'Forward DeltaG = {DeltaG_forward}, Backward DeltaG = {DeltaG_backward}')
         DeltaG = DeltaG_BAR(replicas_pd)
         bar_energies.append(DeltaG)
         print(f'Forward DeltaG = {DeltaG}')
-        E_surf = get_SASA(f'/SASA/{wt_or_mt}/sasa.out')
+        E_surf = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
         sasa_energies.append(E_surf)
         print(f'E_surf = {E_surf}')
     # Get DeltaG difference between WT and MT
