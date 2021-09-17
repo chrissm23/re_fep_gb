@@ -161,8 +161,9 @@ def ljmatrix_str_to_pd(string):
     table_list = []
     for line in lines:
         row_list = line.split()
-        table_list.append([row_list[1].strip().partition('[')[2].partition(']')[0], row_list[3].strip().partition('[')[2].partition(']')[0], 
-            row_list[4], row_list[5], row_list[6], row_list[7]])
+        if len(row_list) == 8:
+            table_list.append([row_list[1].strip().partition('[')[2].partition(']')[0], row_list[3].strip().partition('[')[2].partition(']')[0], 
+                row_list[4], row_list[5], row_list[6], row_list[7]])
 
     table_np = np.array(table_list)
     table_pd = pd.DataFrame(table_np, columns=['Atom Type 1', 'Atom Type 2', 'A_ij', 'B_ij', 'R_ij', 'Eps_ij'])
