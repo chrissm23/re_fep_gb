@@ -200,9 +200,9 @@ if __name__ == '__main__':
             print(f'Forward DeltaG = {round(DeltaG, 2)}', file=f)
         E_surf = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
         sasa_energies.append(E_surf)
-        print(f'E_surf = {E_surf}')
+        print(f'E_surf = {round(E_surf, 2)}')
         with open("FE_diff.out", "a") as f:
-            print(f'E_surf = {E_surf}', file=f)
+            print(f'E_surf = {round(E_surf, 2)}', file=f)
     # Get DeltaG difference between WT and MT
     dE_surf = sasa_energies[1] - sasa_energies[0]
     dBAR = bar_energies[0] - bar_energies[1]
