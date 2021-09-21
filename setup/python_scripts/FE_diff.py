@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.lib.function_base import average
+from pandas.core.accessor import delegate_names
 from scipy.constants import k as k_B
 from scipy.constants import N_A
 import pandas as pd
@@ -73,38 +74,56 @@ def DeltaG_FEP(replicas_pd):
     Temp = replicas_pd[0]['Temperature'].iloc[0] # Temperature
     beta = 4184/(k_B*Temp*N_A)
     n_exchanges = len(replicas_pd)
+    nan_counter_f1 = 0
+    nan_counter_f2 = 0
+    nan_counter_b1 = 0
+    nan_counter_b2 = 0
 
     for j in range(n_exchanges):
         if j%2 == 0: # Exchanges starting with 1 to last replica
-            # Half of backward exponential sums
-            E_ip1_backward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_2)'].to_numpy()
-            E_i_backward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_1)'].to_numpy()
-            DeltaE_backward_2 = -(E_ip1_backward_2[1:] - E_i_backward_2[:-1])*beta
-            exp_sum_backward_2 += np.exp(DeltaE_backward_2)
             # Half of forward exponential sums
-            E_im1_forward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_2)'].to_numpy()
-            E_i_forward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_1)'].to_numpy()
-            DeltaE_forward_2 = -(E_im1_forward_2[:-1] - E_i_forward_2[1:])*beta
-            exp_sum_forward_2 += np.exp(DeltaE_forward_2)
+            E_ip1_forward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_2)'].to_numpy()
+            E_i_forward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_1)'].to_numpy()
+            if not (np.isnan(np.sum(E_ip1_forward_2)) or np.isnan(np.sum(E_i_forward_2))):
+                DeltaE_forward_2 = -(E_ip1_forward_2[1:] - E_i_forward_2[:-1])*beta
+                exp_sum_forward_2 += np.exp(DeltaE_forward_2)
+            else:
+                nan_counter_f2 += 1
+
+            # Half of backward exponential sums
+            E_im1_backward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_2)'].to_numpy()
+            E_i_backward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_1)'].to_numpy()
+            if not (np.isnan(np.sum(E_im1_backward_2)) or np.isnan(np.sum(E_i_backward_2))):
+                DeltaE_backward_2 = -(E_im1_backward_2[:-1] - E_i_backward_2[1:])*beta
+                exp_sum_backward_2 += np.exp(DeltaE_backward_2)
+            else:
+                nan_counter_b2 += 1
 
         elif j%2 == 1: # Exchanges starting with 1 to 2
-            # Half of backward exponential sums
-            E_ip1_backward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_2)'].to_numpy()
-            E_i_backward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_1)'].to_numpy()
-            DeltaE_backward_1 = -(E_ip1_backward_1 - E_i_backward_1)*beta
-            exp_sum_backward_1 += np.exp(DeltaE_backward_1)
             # Half of forward exponential sums
-            E_im1_forward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_2)'].to_numpy()
-            E_i_forward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_1)'].to_numpy()
-            DeltaE_forward_1 = -(E_im1_forward_1 - E_i_forward_1)*beta
-            exp_sum_forward_1 += np.exp(DeltaE_forward_1)
+            E_ip1_forward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_2)'].to_numpy()
+            E_i_forward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_1)'].to_numpy()
+            if not (np.isnan(np.sum(E_ip1_forward_1)) or np.isnan(np.sum(E_i_forward_1))):
+                DeltaE_forward_1 = -(E_ip1_forward_1 - E_i_forward_1)*beta
+                exp_sum_forward_1 += np.exp(DeltaE_forward_1)
+            else:
+                nan_counter_f1 += 1
+
+            # Half of backward exponential sums
+            E_im1_backward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_2)'].to_numpy()
+            E_i_backward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_1)'].to_numpy()
+            if not (np.isnan(np.sum(E_im1_backward_1)) or np.isnan(np.sum(E_i_backward_1))):
+                DeltaE_backward_1 = -(E_im1_backward_1 - E_i_backward_1)*beta
+                exp_sum_backward_1 += np.exp(DeltaE_backward_1)
+            else:
+                nan_counter_b1 += 1
 
     # Exponential averages
     n_data = n_exchanges/2
-    av_exp_backward_1 = exp_sum_backward_1/n_data
-    av_exp_backward_2 = exp_sum_backward_2/n_data
-    av_exp_forward_1 = exp_sum_forward_1/n_data
-    av_exp_forward_2 = exp_sum_forward_2/n_data
+    av_exp_backward_1 = exp_sum_backward_1/(n_data - nan_counter_b1)
+    av_exp_backward_2 = exp_sum_backward_2/(n_data - nan_counter_b2)
+    av_exp_forward_1 = exp_sum_forward_1/(n_data - nan_counter_f1)
+    av_exp_forward_2 = exp_sum_forward_2/(n_data - nan_counter_f2)
     # Free energy differences
     DeltaGs_backward_1 = -np.log(av_exp_backward_1)/beta
     DeltaGs_backward_2 = -np.log(av_exp_backward_2)/beta
@@ -150,11 +169,25 @@ def DeltaG_BAR(replicas_pd):
     # Concatenate pairs of rows for BAR
     u_ns_a = [np.stack([u_1_a[i,:], u_2_a[i,:]], axis=0)*beta for i in range(int(n_replicas/2 - 1))]
     u_ns_b = [np.stack([u_1_b[i,:], u_2_b[i,:]], axis=0)*beta for i in range(int(n_replicas/2))]
+    # Filter out NaN
+    n_exchgs_a = [np.array([n_exchg/2, n_exchg/2]) for _ in range(int(n_replicas/2 - 1))]
+    n_exchgs_b = [np.array([n_exchg/2, n_exchg/2]) for _ in range(int(n_replicas/2))]
+    for u_ns,n_exchanges in zip([u_ns_a, u_ns_b],[n_exchgs_a, n_exchgs_b]):
+        nans_idx = [np.argwhere(np.isnan(x)) for x in u_ns]
+        nans_columns = [list(set(x[:,1].tolist())) for x in nans_idx]
+        count_nans = [np.array([sum(map(lambda x : x < n_exchg/2, y)),sum(map(lambda x : x >= n_exchg/2, y))]) for y in nans_columns]
+        new_exchgs = [x-y for x,y in zip(n_exchanges, count_nans)]
+        if u_ns == u_ns_a:
+            n_exchgs_a = new_exchgs
+            u_ns_a = [np.delete(u_ns_a[i], nans_columns[i], axis=1) for i in range(len(u_ns_a))]
+        elif u_ns == u_ns_b:
+            n_exchgs_b = new_exchgs
+            u_ns_b = [np.delete(u_ns_b[i], nans_columns[i], axis=1) for i in range(len(u_ns_b))]
     # Calculate DeltaG with BAR
-    mbars_a = [pymbar.MBAR(x, 2*[n_exchg/2], maximum_iterations=100000).getFreeEnergyDifferences(return_dict=True) for x in u_ns_a]
-    mbars_b = [pymbar.MBAR(x, 2*[n_exchg/2], maximum_iterations=100000).getFreeEnergyDifferences(return_dict=True) for x in u_ns_b]
-    DeltaGs_a = [x['Delta_f'][1,0] for x in mbars_a]
-    DeltaGs_b = [x['Delta_f'][1,0] for x in mbars_b]
+    mbars_a = [pymbar.MBAR(u_ns_a[i], n_exchgs_a[i], maximum_iterations=100000).getFreeEnergyDifferences(return_dict=True) for i in range(len(u_ns_a))]
+    mbars_b = [pymbar.MBAR(u_ns_b[i], n_exchgs_b[i], maximum_iterations=100000).getFreeEnergyDifferences(return_dict=True) for i in range(len(u_ns_b))]
+    DeltaGs_a = [x['Delta_f'][0,1] for x in mbars_a]
+    DeltaGs_b = [x['Delta_f'][0,1] for x in mbars_b]
     DeltaG = sum(DeltaGs_a) + sum(DeltaGs_b)
 
     return DeltaG
@@ -177,32 +210,59 @@ def get_SASA(path):
 
     return E_surf
 
+def get_averageE(replicas_pd, replica1, replica2):
+    """Calculate average potential energy between replica1 and replica2"""
+    print(f'Computing potential energy difference between replica {replica1} and replica {replica2}')
+    epot_sum1 = 0
+    epot_sum2 = 0
+    
+    # Add all PotE(x_1)
+    for replica in replicas_pd:
+        replica1_data = replica[replica['Replica'] == replica1]
+        epot_sum1 += replica1_data['PotE(x_1)'].iloc[0]
+        replica2_data = replica[replica['Replica'] == replica2]
+        epot_sum2 += replica2_data['PotE(x_1)'].iloc[0]
+    # Calculate average
+    n_exchgs = len(replicas_pd)
+    epot1_av = epot_sum1/n_exchgs
+    epot2_av = epot_sum2/n_exchgs
+
+    return epot1_av - epot2_av
+
 if __name__ == '__main__':
+    open("FE_diff.out", "w").close()
     FE_dir = './'
     fep_energies = []
     bar_energies = []
     sasa_energies = []
     # Get DeltaG for WT and MT
     for wt_or_mt in ['WT', 'MT']:
-        print(f'Calculating DeltaG of {wt_or_mt} from H-REMD...')
+        print(f'Calculating DeltaG of {wt_or_mt} from H-REMD...\n')
         with open("FE_diff.out", "a") as f:
-            print(f'Calculating DeltaG of {wt_or_mt} from H-REMD...', file=f)
+            print(f'Calculating DeltaG of {wt_or_mt} from H-REMD...\n', file=f)
         replicas_pd = read_remlog(FE_dir + f'/RE/{wt_or_mt}/rem.log')
         [DeltaG_backward, DeltaG_forward] = DeltaG_FEP(replicas_pd)
         fep_energies.append([DeltaG_forward, DeltaG_backward])
-        print(f'Forward DeltaG = {round(DeltaG_forward, 2)}, Backward DeltaG = {round(DeltaG_backward, 2)}')
+        print(f'Forward DeltaG = {round(DeltaG_forward, 2)}, Backward DeltaG = {round(DeltaG_backward, 2)}\n')
         with open("FE_diff.out", "a") as f:
-            print(f'Forward DeltaG = {round(DeltaG_forward, 2)}, Backward DeltaG = {round(DeltaG_backward, 2)}', file=f)
+            print(f'Forward DeltaG = {round(DeltaG_forward, 2)}, Backward DeltaG = {round(DeltaG_backward, 2)}\n', file=f)
         DeltaG = DeltaG_BAR(replicas_pd)
         bar_energies.append(DeltaG)
-        print(f'Forward DeltaG = {round(DeltaG, 2)}')
+        print(f'Forward DeltaG = {round(DeltaG, 2)}\n')
         with open("FE_diff.out", "a") as f:
-            print(f'Forward DeltaG = {round(DeltaG, 2)}', file=f)
+            print(f'Forward DeltaG = {round(DeltaG, 2)}\n', file=f)
         E_surf = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
         sasa_energies.append(E_surf)
-        print(f'E_surf = {round(E_surf, 2)}')
+        print(f'E_surf = {round(E_surf, 2)}\n')
         with open("FE_diff.out", "a") as f:
-            print(f'E_surf = {round(E_surf, 2)}', file=f)
+            print(f'E_surf = {round(E_surf, 2)}\n', file=f)
+
+        # Get average potential energy difference between fist and last replicas
+        dE_pot = get_averageE(replicas_pd, 1, len(replicas_pd[0].index))
+        print(f'DeltaE = {round(dE_pot, 2)}\n')
+        with open("FE_diff.out", "a") as f:
+            print(f'DeltaE = {round(dE_pot, 2)}\n', file=f)
+
     # Get DeltaG difference between WT and MT
     dE_surf = sasa_energies[1] - sasa_energies[0]
     dBAR = bar_energies[0] - bar_energies[1]
