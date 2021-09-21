@@ -227,7 +227,7 @@ def get_averageE(replicas_pd, replica1, replica2):
     epot1_av = epot_sum1/n_exchgs
     epot2_av = epot_sum2/n_exchgs
 
-    return epot1_av - epot2_av
+    return epot2_av - epot1_av
 
 if __name__ == '__main__':
     open("FE_diff.out", "w").close()
