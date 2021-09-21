@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.lib.function_base import average
-from pandas.core.accessor import delegate_names
 from scipy.constants import k as k_B
 from scipy.constants import N_A
 import pandas as pd
@@ -190,7 +189,7 @@ def DeltaG_BAR(replicas_pd):
     DeltaGs_b = [x['Delta_f'][0,1] for x in mbars_b]
     DeltaG = sum(DeltaGs_a) + sum(DeltaGs_b)
 
-    return DeltaG
+    return DeltaG/beta
 
 def get_SASA(path):
     """Read remlog file in path and extract energy"""
