@@ -3,12 +3,12 @@
 # Run minimization of WT for later equilibraion of all topologies
 #
 
-pmemd=$AMBERHOME/bin/pmemd
+pmemd=$AMBERHOME/bin/pmemd.MPI
 fe_dir=./FE/minimization/%wt_or_mt%
 
 echo "Minimizing..."
 
-$pmemd -i $fe_dir/minimization.in -p $fe_dir/topology.parm7 \
+mpirun -n 8 $pmemd -ng 8 -i $fe_dir/minimization.in -p $fe_dir/topology.parm7 \
 	-c $fe_dir/coordinates.rst7 -ref $fe_dir/coordinates.rst7 \
 	-O -o $fe_dir/minimization.out -inf $fe_dir/min.info \
 	-r $fe_dir/minimization.rst7
