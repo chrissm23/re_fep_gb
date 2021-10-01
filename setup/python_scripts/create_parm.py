@@ -1,16 +1,7 @@
-import numpy as np
-import pandas as pd
-import fileinput
 import shutil
-import os
 import subprocess
 
-from pandas.core.groupby.groupby import get_groupby
 import parmed
-
-from biopandas.pdb import PandasPdb
-from parmed import amber
-from parmed.tools.actions import parm
 
 import setup.python_scripts.get_data_n_general as get_data_n_general
 
