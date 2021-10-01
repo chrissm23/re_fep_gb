@@ -37,7 +37,6 @@ def read_input(control_file):
                     control_dict['chains'] = chains
                 elif len(chains) == 1 and chains[0]:
                     control_dict['chains'] = chains[0]
-            # Later add checks for the different options of functions
             elif parameter_name == 'function_GB':
                 functional = control[1].strip()
                 if functional in possible_functions:
