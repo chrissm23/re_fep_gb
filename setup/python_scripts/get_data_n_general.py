@@ -33,7 +33,7 @@ def read_input(control_file):
                 else:
                     raise Exception('Intermediate state not recognized')
             elif parameter_name == 'include_mut':
-                control_dict['include_mut'] = bool(int(control[1].strip))
+                control_dict['include_mut'] = bool(int(control[1].strip()))
             elif parameter_name == 'res_mut': # Get amino acid(s) to mutate to
                 residue_mutant = control[1].strip().split(',')
                 if len(residue_position) > 1:
