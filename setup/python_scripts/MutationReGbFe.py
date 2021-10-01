@@ -50,6 +50,8 @@ class MutationReGbFe:
         self.n_windows = control_dict['n_windows']
         self.windows = np.linspace(0, 1, self.n_windows).tolist()
         self.windows.reverse()
+        self.intermediate = control_dict['intermediate']
+        self.include_mut = control_dict['include_mut']
         # Read PDBs into pandas dataframe and delete hydrogens
         self.wt_pdb_path = wt_structure_path
         self.mt_pdb_path = None
@@ -184,7 +186,7 @@ class MutationReGbFe:
                     self.change_residue_name(chain, self.residue_position, self.residue_mutant)
                     self.delete_side_chain(chain, self.residue_position)
         
-        self.mt_pdb_path = 'setup/parms_n_pdbs/pdbs/mt_tripeptide.pdb'
+        self.mt_pdb_path = 'setup/parms_n_pdbs/pdbs/mt.pdb'
         self.mt_structure.to_pdb(path=self.mt_pdb_path, records=None, gz=False, append_newline=True)
 
     def create_parms(self):
@@ -192,7 +194,8 @@ class MutationReGbFe:
         create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path) # Create parameter files from original WT and mutant structures
 
         print("Creating intermediate parameter files...")
-        create_parm.create_intermediate_parms(self.functions, self.windows, self.leap_residue_position) # Create intermediate parameter files
+        # Create intermediate parameter files
+        create_parm.create_intermediate_parms(self.functions, self.windows, self.leap_residue_position, self.intermediate, self.include_mut)
         print("Intermediate parameters finished.")
 
     def create_RE_n_equil_files(self):
@@ -258,7 +261,8 @@ class MutationReGbFe:
             shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{wt_or_mt.lower()}_0.parm7', f'{surf_dir}/topology.parm7')
         
         for x in ['WT', 'MT']:
-            copy_re_equil_files(x)
+            if x != 'MT' or self.include_mut:
+                copy_re_equil_files(x)
                  
 
     def create_FE_dir(self):
@@ -293,43 +297,46 @@ class MutationReGbFe:
 
         # Copy files for minimization of WT and MT
         for x,y in zip([min_wt_dir, min_mt_dir], ['wt', 'mt']):
-            shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{y}_0.parm7', f'{x}/topology.parm7')
-            shutil.copyfile(f'setup/parms_n_pdbs/parms/rst_windows/{y}_0.rst7', f'{x}/coordinates.rst7')
-            shutil.copyfile('setup/tmpls/minimize_tmpl/minimization.in', f'{x}/minimization.in')
-            shutil.copyfile('setup/tmpls/minimize_tmpl/minimize.sh', f'{x}/minimize.sh')
-            replace_dict_min = {
-                '%wt_or_mt%': y.upper()
-            }
-            get_data_n_general.replace_in_file(f'{x}/minimize.sh', replace_dict_min)
-            # Minimize WT and WT
-            get_data_n_general.make_executable(f'{x}/minimize.sh')
-            subprocess.call(f'{x}/minimize.sh')
+            if y != 'mt' or self.include_mut:
+                shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{y}_0.parm7', f'{x}/topology.parm7')
+                shutil.copyfile(f'setup/parms_n_pdbs/parms/rst_windows/{y}_0.rst7', f'{x}/coordinates.rst7')
+                shutil.copyfile('setup/tmpls/minimize_tmpl/minimization.in', f'{x}/minimization.in')
+                shutil.copyfile('setup/tmpls/minimize_tmpl/minimize.sh', f'{x}/minimize.sh')
+                replace_dict_min = {
+                    '%wt_or_mt%': y.upper()
+                }
+                get_data_n_general.replace_in_file(f'{x}/minimize.sh', replace_dict_min)
+                # Minimize WT and WT
+                get_data_n_general.make_executable(f'{x}/minimize.sh')
+                subprocess.call(f'{x}/minimize.sh')
 
         # Copy slurm template for equilibration
         for wt_or_mt in ['WT', 'MT']:
-            shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_equilibration.tmpl', f'FE/equilibration/submit_equilibration_{wt_or_mt}.slurm')
-            replace_dict_equil = {
-                '%residue_number%': str(self.residue_position),
-                '%aminoacid_mutant%': str(self.residue_mutant),
-                '%wt_or_mt%': wt_or_mt
-            }
-            get_data_n_general.replace_in_file(f'FE/equilibration/submit_equilibration_{wt_or_mt}.slurm', replace_dict_equil)
+            if x != 'MT' or self.include_mut:
+                shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_equilibration.tmpl', f'FE/equilibration/submit_equilibration_{wt_or_mt}.slurm')
+                replace_dict_equil = {
+                    '%residue_number%': str(self.residue_position),
+                    '%aminoacid_mutant%': str(self.residue_mutant),
+                    '%wt_or_mt%': wt_or_mt
+                }
+                get_data_n_general.replace_in_file(f'FE/equilibration/submit_equilibration_{wt_or_mt}.slurm', replace_dict_equil)
         
         # Copy slurm template for remd
         n_replicas = self.n_windows
         n_nodes = n_replicas//8 + (n_replicas%8 > 0)
         n_replica_by_nodes = 8
         for wt_or_mt in ['WT', 'MT']:
-            shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_remd.tmpl', f'FE/RE/submit_remd_{wt_or_mt}.slurm')
-            replace_dict_remd = {
-                '%residue_number%': str(self.residue_position),
-                '%aminoacid_mutant%': str(self.residue_mutant),
-                '%n_nodes%': str(n_nodes),
-                '%n_replicas%': str(n_replicas),
-                '%n_replica_by_nodes%': str(n_replica_by_nodes),
-                '%wt_or_mt%': wt_or_mt
-            }
-            get_data_n_general.replace_in_file(f'FE/RE/submit_remd_{wt_or_mt}.slurm', replace_dict_remd)
+            if x != 'MT' or self.include_mut:
+                shutil.copyfile('setup/tmpls/free_energy_tmpls/submit_remd.tmpl', f'FE/RE/submit_remd_{wt_or_mt}.slurm')
+                replace_dict_remd = {
+                    '%residue_number%': str(self.residue_position),
+                    '%aminoacid_mutant%': str(self.residue_mutant),
+                    '%n_nodes%': str(n_nodes),
+                    '%n_replicas%': str(n_replicas),
+                    '%n_replica_by_nodes%': str(n_replica_by_nodes),
+                    '%wt_or_mt%': wt_or_mt
+                }
+                get_data_n_general.replace_in_file(f'FE/RE/submit_remd_{wt_or_mt}.slurm', replace_dict_remd)
         
         # Copy bash file to run SASA
         shutil.copyfile('setup/tmpls/free_energy_tmpls/surface_area.sh', 'FE/SASA/surface_area.sh')
