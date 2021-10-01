@@ -10,7 +10,6 @@ Collection of functions to read necessary input provided and calculate informati
 def read_input(control_file):
     """Reads control.txt and outputs a dictionary with control parameters."""
     control_dict = {} # Dictionary to store parameters
-    functions = [] # List to store functional relationship of chan
     possible_functions = ['constant', 'linear', 'quadratic', 'sqrt', 'root6']
     with open(control_file, 'r') as cf:
         lines = cf.readlines()
