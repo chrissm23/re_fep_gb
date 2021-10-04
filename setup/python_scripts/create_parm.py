@@ -156,7 +156,7 @@ def get_CB_Parms(parms_list, residue_position, functional, windows):
     """Changes charge of CB carbon to keep residue charge constant"""
     def compensate_residue(residue, parm_inter, window):
         """Compensate the charge of each mutating residue to ALA"""
-        # Charge of GLY hydrogens bound to CA
+        # Charge of ALA hydrogens bound to CB
         charge_ALA_hydrogens = 0.1809
         charge_ALA_CB = -0.1825
         charge_CB = parmed.tools.netCharge(parm_inter, f':{residue}@CB').execute()
@@ -167,6 +167,20 @@ def get_CB_Parms(parms_list, residue_position, functional, windows):
         new_charge_CB = charge_CB + (1 - multiplier)*diff_charge
         # Change CB charge
         parmed.tools.change(parm_inter, 'Charge', f':{residue}@CB', f'{new_charge_CB}').execute()
+        # Charge of CA to get that of ALA
+        charge_ALA_CA = 0.0337
+        charge_CA = parmed.tools.netCharge(parm_inter, f':{residue}@CA').execute()
+        charge_CA = round(charge_CA, 4)
+        diff_charge_CA = charge_ALA_CA - charge_CA
+        new_charge_CA = charge_CA + (1 - multiplier)*diff_charge_CA
+        parmed.tools.change(parm_inter, 'Charge', f':{residue}@CA', f'{new_charge_CA}').execute()
+        # Charge of HA to get that of ALA
+        charge_ALA_HA = 0.0823
+        charge_HA = parmed.tools.netCharge(parm_inter, f':{residue}@HA').execute()
+        charge_HA = round(charge_HA, 4)
+        diff_charge_HA = charge_ALA_HA - charge_HA
+        new_charge_HA = charge_HA + (1 - multiplier)*diff_charge_HA
+        parmed.tools.change(parm_inter, 'Charge', f':{residue}@HA', f'{new_charge_HA}').execute()
 
     for i in range(len(parms_list)):
         if not isinstance(residue_position, list):
@@ -199,7 +213,7 @@ def create_intermediate_parms(functions, windows, residue_position, intermediate
     if intermediate == 'GLY':
         residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H'
     elif intermediate == 'ALA':
-        residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H,CB'
+        residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H,HA,CB'
 
     # Create parms with modified LJ matrix according to windows and functions
     wt_parms_LJ = get_new_LJParms(wt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
