@@ -5,6 +5,6 @@ res_mut=VAL
 chains=tripeptide
 function_GB=root6
 function_ele=linear
-function_Rlj=sqrt
+function_Rlj=root6
 function_epsilonlj=linear
 n_windows_per_topology=32
