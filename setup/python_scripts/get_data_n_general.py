@@ -185,8 +185,9 @@ def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
     a = 1
     if truncate == True:
         x_0 = 0.2
-        b = x_0*x_0/(1-x_0)
-        c = -b
+        a = 1/(x_0^2 - 2*x_0 + 1)
+        b = -2*a*x_0
+        c = 1-(a+b)
     else:
         x_0 = 0
         b = 0
