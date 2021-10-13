@@ -87,16 +87,22 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
             for mask_nonmutant in masks_by_nonmutated_atomtype_str:
                 atom_type_nonmut = get_data_n_general.ljtypes_str_to_pd(str(parmed.tools.printLJTypes(parmed_object, f'@{mask_nonmutant}')))['LJ Type'][0]
 
-                LJRadius_minimum = 0
-                LJEps_minimum = 0
+                LJRadius_minimum = 0.3
+                LJEps_minimum = 0.006
                 # Get LJ Radius for atom type pair and calculate new LJ Radius
                 R_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
                     ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['R_ij'].iloc[0]
-                new_R_ij = multiplier_R*(R_ij - LJRadius_minimum) + LJRadius_minimum
+                if R_ij <= LJRadius_minimum:
+                    new_R_ij = R_ij
+                else:
+                    new_R_ij = multiplier_R*(R_ij - LJRadius_minimum) + LJRadius_minimum
                 # Get LJ epsilon for atom type pair and calculate new LJ epsilon
                 Eps_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
                     ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['Eps_ij'].iloc[0]
-                new_Eps_ij = multiplier_eps*(Eps_ij - LJEps_minimum) + LJEps_minimum
+                if Eps_ij <= LJEps_minimum:
+                    new_Eps_ij = Eps_ij
+                else:
+                    new_Eps_ij = multiplier_eps*(Eps_ij - LJEps_minimum) + LJEps_minimum
 
                 # Change LJ parameters for atom type pair
                 parmed.tools.changeLJPair(new_parms[i], f'@{mask_mutant}', f'@{mask_nonmutant}', f'{new_R_ij}', f'{new_Eps_ij}').execute()
@@ -242,6 +248,8 @@ def create_intermediate_parms(functions, windows, residue_position, intermediate
     #print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}&!@C,O,N,H'))
     for i in range(len(wt_parms_CA)):
         #print(parmed.tools.printDetails(wt_parms_CA[i], f':{residue_mask}&!@C,O,N,H'))
+        parmed.tools.HMassRepartition(wt_parms_CA[i]).execute()
         parmed.tools.outparm(wt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
         if include_mut:
+            parmed.tools.HMassRepartition(mt_parms_CA[i]).execute()
             parmed.tools.outparm(mt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()
