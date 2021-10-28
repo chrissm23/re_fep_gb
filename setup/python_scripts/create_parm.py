@@ -1,16 +1,7 @@
-import numpy as np
-import pandas as pd
-import fileinput
 import shutil
-import os
 import subprocess
 
-from pandas.core.groupby.groupby import get_groupby
 import parmed
-
-from biopandas.pdb import PandasPdb
-from parmed import amber
-from parmed.tools.actions import parm
 
 import setup.python_scripts.get_data_n_general as get_data_n_general
 
@@ -101,11 +92,17 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
                 # Get LJ Radius for atom type pair and calculate new LJ Radius
                 R_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
                     ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['R_ij'].iloc[0]
-                new_R_ij = multiplier_R*(R_ij - LJRadius_minimum) + LJRadius_minimum
+                if R_ij <= LJRadius_minimum:
+                    new_R_ij = R_ij
+                else:
+                    new_R_ij = multiplier_R*(R_ij - LJRadius_minimum) + LJRadius_minimum
                 # Get LJ epsilon for atom type pair and calculate new LJ epsilon
                 Eps_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
                     ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['Eps_ij'].iloc[0]
-                new_Eps_ij = multiplier_eps*(Eps_ij - LJEps_minimum) + LJEps_minimum
+                if Eps_ij <= LJEps_minimum:
+                    new_Eps_ij = Eps_ij
+                else:
+                    new_Eps_ij = multiplier_eps*(Eps_ij - LJEps_minimum) + LJEps_minimum
 
                 # Change LJ parameters for atom type pair
                 parmed.tools.changeLJPair(new_parms[i], f'@{mask_mutant}', f'@{mask_nonmutant}', f'{new_R_ij}', f'{new_Eps_ij}').execute()
@@ -161,7 +158,45 @@ def get_CA_Parms(parms_list, residue_position, functional, windows):
                 compensate_residue(residue, parms_list[i], windows[i])
     return parms_list
 
-def create_intermediate_parms(functions, windows, residue_position):
+def get_CB_Parms(parms_list, residue_position, functional, windows):
+    """Changes charge of CB carbon to keep residue charge constant"""
+    def compensate_residue(residue, parm_inter, window):
+        """Compensate the charge of each mutating residue to ALA"""
+        # Charge of ALA hydrogens bound to CB
+        charge_ALA_hydrogens = 0.1809
+        charge_ALA_CB = -0.1825
+        charge_CB = parmed.tools.netCharge(parm_inter, f':{residue}@CB').execute()
+        charge_CB = round(charge_CB, 4)
+        diff_charge_CB = charge_ALA_CB - charge_CB
+        diff_charge = charge_ALA_hydrogens + diff_charge_CB
+        multiplier = get_data_n_general.get_multiplier(window, functional, truncate=True)
+        new_charge_CB = charge_CB + (1 - multiplier)*diff_charge
+        # Change CB charge
+        parmed.tools.change(parm_inter, 'Charge', f':{residue}@CB', f'{new_charge_CB}').execute()
+        # Charge of CA to get that of ALA
+        charge_ALA_CA = 0.0337
+        charge_CA = parmed.tools.netCharge(parm_inter, f':{residue}@CA').execute()
+        charge_CA = round(charge_CA, 4)
+        diff_charge_CA = charge_ALA_CA - charge_CA
+        new_charge_CA = charge_CA + (1 - multiplier)*diff_charge_CA
+        parmed.tools.change(parm_inter, 'Charge', f':{residue}@CA', f'{new_charge_CA}').execute()
+        # Charge of HA to get that of ALA
+        charge_ALA_HA = 0.0823
+        charge_HA = parmed.tools.netCharge(parm_inter, f':{residue}@HA').execute()
+        charge_HA = round(charge_HA, 4)
+        diff_charge_HA = charge_ALA_HA - charge_HA
+        new_charge_HA = charge_HA + (1 - multiplier)*diff_charge_HA
+        parmed.tools.change(parm_inter, 'Charge', f':{residue}@HA', f'{new_charge_HA}').execute()
+
+    for i in range(len(parms_list)):
+        if not isinstance(residue_position, list):
+            compensate_residue(residue_position, parms_list[i], windows[i])
+        else:
+            for residue in residue_position:
+                compensate_residue(residue, parms_list[i], windows[i])
+    return parms_list
+
+def create_intermediate_parms(functions, windows, residue_position, intermediate, include_mut):
     """Creates intermediate parameter files using scaling of function on residues given by residue_position"""
     # Leap generated parameter files
     wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
@@ -171,7 +206,8 @@ def create_intermediate_parms(functions, windows, residue_position):
 
     # Import to ParmEd
     wt_parmed = parmed.amber.AmberParm(wt_parm_path, wt_rst_path)
-    mt_parmed = parmed.amber.AmberParm(mt_parm_path, mt_rst_path)
+    if include_mut:
+        mt_parmed = parmed.amber.AmberParm(mt_parm_path, mt_rst_path)
 
     #Create mutated residues masks
     if not isinstance(residue_position, list):
@@ -179,25 +215,41 @@ def create_intermediate_parms(functions, windows, residue_position):
     else:
         residue_mask_list = [str(x) for x in residue_position]
         residue_mask = ','.join(residue_mask_list)
-    residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H'
+    # Select mask of intermediate
+    if intermediate == 'GLY':
+        residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H'
+    elif intermediate == 'ALA':
+        residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H,HA,CB'
 
     # Create parms with modified LJ matrix according to windows and functions
     wt_parms_LJ = get_new_LJParms(wt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
-    mt_parms_LJ = get_new_LJParms(mt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
+    if include_mut:
+        mt_parms_LJ = get_new_LJParms(mt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
 
     # Change charge of mutating residues according to windows and functions
     wt_parms_ele = get_new_Parms(wt_parms_LJ, residue_mask_nobackbone, 'Charge', functions[1], windows[1:], truncate=True)
-    mt_parms_ele = get_new_Parms(mt_parms_LJ, residue_mask_nobackbone, 'Charge', functions[1], windows[1:], truncate=True)
+    if include_mut:
+        mt_parms_ele = get_new_Parms(mt_parms_LJ, residue_mask_nobackbone, 'Charge', functions[1], windows[1:], truncate=True)
 
     # Change GB Radius of mutating residues according to windws and functions
     wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask_nobackbone, 'GB Radius', functions[0], windows[1:], truncate=False)
-    mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask_nobackbone, 'GB Radius', functions[0], windows[1:], truncate=False)
+    if include_mut:
+        mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask_nobackbone, 'GB Radius', functions[0], windows[1:], truncate=False)
 
-    wt_parms_CA = get_CA_Parms(wt_parms_GB, residue_position, functions[1], windows[1:])
-    mt_parms_CA = get_CA_Parms(mt_parms_GB, residue_position, functions[1], windows[1:])
+    if intermediate == 'GLY':
+        wt_parms_CA = get_CA_Parms(wt_parms_GB, residue_position, functions[1], windows[1:])
+        if include_mut:
+            mt_parms_CA = get_CA_Parms(mt_parms_GB, residue_position, functions[1], windows[1:])
+    elif intermediate == 'ALA':
+        wt_parms_CA = get_CB_Parms(wt_parms_GB, residue_position, functions[1], windows[1:])
+        if include_mut:
+            mt_parms_CA = get_CB_Parms(mt_parms_GB, residue_position, functions[1], windows[1:])
 
     #print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}&!@C,O,N,H'))
     for i in range(len(wt_parms_CA)):
         #print(parmed.tools.printDetails(wt_parms_CA[i], f':{residue_mask}&!@C,O,N,H'))
+        parmed.tools.HMassRepartition(wt_parms_CA[i]).execute()
         parmed.tools.outparm(wt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
-        parmed.tools.outparm(mt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()
+        if include_mut:
+            parmed.tools.HMassRepartition(mt_parms_CA[i]).execute()
+            parmed.tools.outparm(mt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()

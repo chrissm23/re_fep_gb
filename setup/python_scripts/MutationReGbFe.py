@@ -1,6 +1,4 @@
 import numpy as np
-import pandas as pd
-import fileinput
 import shutil
 import os
 import subprocess
@@ -52,6 +50,8 @@ class MutationReGbFe:
         self.n_windows = control_dict['n_windows']
         self.windows = np.linspace(0, 1, self.n_windows).tolist()
         self.windows.reverse()
+        self.intermediate = control_dict['intermediate']
+        self.include_mut = control_dict['include_mut']
         # Read PDBs into pandas dataframe and delete hydrogens
         self.wt_pdb_path = wt_structure_path
         self.mt_pdb_path = None
@@ -186,7 +186,7 @@ class MutationReGbFe:
                     self.change_residue_name(chain, self.residue_position, self.residue_mutant)
                     self.delete_side_chain(chain, self.residue_position)
         
-        self.mt_pdb_path = 'setup/parms_n_pdbs/pdbs/mt_tripeptide.pdb'
+        self.mt_pdb_path = 'setup/parms_n_pdbs/pdbs/mt.pdb'
         self.mt_structure.to_pdb(path=self.mt_pdb_path, records=None, gz=False, append_newline=True)
 
     def create_parms(self):
@@ -194,7 +194,8 @@ class MutationReGbFe:
         create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path) # Create parameter files from original WT and mutant structures
 
         print("Creating intermediate parameter files...")
-        create_parm.create_intermediate_parms(self.functions, self.windows, self.leap_residue_position) # Create intermediate parameter files
+        # Create intermediate parameter files
+        create_parm.create_intermediate_parms(self.functions, self.windows, self.leap_residue_position, self.intermediate, self.include_mut)
         print("Intermediate parameters finished.")
 
     def create_RE_n_equil_files(self):
@@ -252,7 +253,8 @@ class MutationReGbFe:
             }
             get_data_n_general.replace_in_file(f'{rep_dir}/generate_remd_inputs.sh', replace_dict_genremd)
             get_data_n_general.make_executable(f'{rep_dir}/generate_remd_inputs.sh')
-            subprocess.call(f'{rep_dir}/generate_remd_inputs.sh')
+            if wt_or_mt != 'MT' or self.include_mut:
+                subprocess.call(f'{rep_dir}/generate_remd_inputs.sh')
             for x in parm_files_topology:
                 shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{rep_dir}/{x}')
             # Copy files to SASA directory

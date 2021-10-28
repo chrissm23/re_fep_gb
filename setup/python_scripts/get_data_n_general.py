@@ -1,11 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
-import subprocess
 import fileinput
-import shutil
-
-from biopandas.pdb import PandasPdb
 
 """
 Collection of functions to read necessary input provided and calculate information required about the specific structure.
@@ -14,8 +10,8 @@ Collection of functions to read necessary input provided and calculate informati
 def read_input(control_file):
     """Reads control.txt and outputs a dictionary with control parameters."""
     control_dict = {} # Dictionary to store parameters
-    functions = [] # List to store functional relationship of chan
-    possible_functions = ['constant', 'linear', 'quadratic', 'sqrt', 'root6']
+    possible_functions = ['constant', 'linear', 'quadratic', 'sqrt', 'root6', 'quartic']
+    possible_intermediates = ['GLY', 'ALA']
     with open(control_file, 'r') as cf:
         lines = cf.readlines()
         for line in lines:
@@ -30,6 +26,14 @@ def read_input(control_file):
                     control_dict['residue_position'] = [int(x) for x in residue_position]
                 elif len(residue_position) == 1 and residue_position[0]:
                     control_dict['residue_position'] = int(residue_position[0])
+            elif parameter_name == 'intermediate':
+                intermediate = control[1].strip()
+                if intermediate in possible_intermediates:
+                    control_dict['intermediate'] = intermediate
+                else:
+                    raise Exception('Intermediate state not recognized')
+            elif parameter_name == 'include_mut':
+                control_dict['include_mut'] = bool(int(control[1].strip()))
             elif parameter_name == 'res_mut': # Get amino acid(s) to mutate to
                 residue_mutant = control[1].strip().split(',')
                 if len(residue_position) > 1:
@@ -42,7 +46,6 @@ def read_input(control_file):
                     control_dict['chains'] = chains
                 elif len(chains) == 1 and chains[0]:
                     control_dict['chains'] = chains[0]
-            # Later add checks for the different options of functions
             elif parameter_name == 'function_GB':
                 functional = control[1].strip()
                 if functional in possible_functions:
@@ -179,15 +182,26 @@ def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
     """Calculates multiplier of the parameter according to window from 0 to 1 and functional. If truncate=True multiplier goes to 0 faster than window"""
     y_1 = 1
     x_1 = 1
-    a = 1
+    a1 = 1
+    a2 = 1
     if truncate == True:
         x_0 = 0.2
-        b = x_0*x_0/(1-x_0)
-        c = -b
+
+        a1 = 1/(x_0*x_0 - 2*x_0 + 1)
+        b1 = -2*a1*x_0
+        c1 = 1-(a1+b1)
+
+        a2 = 1/(3*np.power(x_0,4) - 4*np.power(x_0,3) + 1)
+        b2 = -4*a2*np.power(x_0,3)
+        c2 = 1-(a2+b2)
     else:
         x_0 = 0
-        b = 0
-        c = 0
+
+        b1 = 0
+        c1 = 0
+
+        b2 = 0
+        c2 = 0
     if window < x_0:
         multiplier = 0
     else:
@@ -196,7 +210,9 @@ def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
         if functional == 'linear':
             multiplier = y_1/(x_1-x_0)*(window - x_0)
         if functional == 'quadratic':
-            multiplier = window*(a*window + b) + c
+            multiplier = window*(a1*window + b1) + c1
+        if functional == 'quartic':
+            multiplier = a2*np.power(window,4) + b2*window + c2
         if functional == 'sqrt':
             multiplier = np.sqrt((window - x_0)/(1 - x_0))
         if functional == 'root6':
