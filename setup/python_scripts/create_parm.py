@@ -87,8 +87,8 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
             for mask_nonmutant in masks_by_nonmutated_atomtype_str:
                 atom_type_nonmut = get_data_n_general.ljtypes_str_to_pd(str(parmed.tools.printLJTypes(parmed_object, f'@{mask_nonmutant}')))['LJ Type'][0]
 
-                LJRadius_minimum = 0.3
-                LJEps_minimum = 0.006
+                LJRadius_minimum = 0
+                LJEps_minimum = 0
                 # Get LJ Radius for atom type pair and calculate new LJ Radius
                 R_ij = new_ljmatrix[((new_ljmatrix['Atom Type 1'] == atom_type_mut) & (new_ljmatrix['Atom Type 2'] == atom_type_nonmut)) | 
                     ((new_ljmatrix['Atom Type 2'] == atom_type_mut) & (new_ljmatrix['Atom Type 1'] == atom_type_nonmut))]['R_ij'].iloc[0]

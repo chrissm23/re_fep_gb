@@ -185,7 +185,7 @@ def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
     a1 = 1
     a2 = 1
     if truncate == True:
-        x_0 = 0.3
+        x_0 = 0.2
 
         a1 = 1/(x_0*x_0 - 2*x_0 + 1)
         b1 = -2*a1*x_0
