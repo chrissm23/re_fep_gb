@@ -238,8 +238,9 @@ class MutationReGbFe:
             shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{parm_files_topology[0]}', f'{equil_dir}/topology.parm7')
             shutil.copyfile(f'FE/minimization/{wt_or_mt}/minimization.rst7', f'{equil_dir}/minimization.rst7')
             if wt_or_mt != 'MT' or self.include_mut:
-                shutil.copyfile(f'setup/tmpls/cpptraj_tmpls/create_snapshots.sh', f'{equil_dir}/create_snapshots.sh')
+                shutil.copyfile('setup/tmpls/cpptraj_tmpls/create_snapshots.sh', f'{equil_dir}/create_snapshots.sh')
                 get_data_n_general.make_executable(f'{equil_dir}/create_snapshots.sh')
+                shutil.copyfile('setup/tmpls/equilibration_tmpls/sample.in', f'{equil_dir}/sample.in')
             # Copy files to RE directory
             shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{rep_dir}/groupfile.ref')
             shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{rep_dir}/mdin.ref')

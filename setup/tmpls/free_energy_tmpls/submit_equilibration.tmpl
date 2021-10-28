@@ -13,7 +13,7 @@
 
 module load amber
 
-cd %wt_or_mt%/0/
+cd %wt_or_mt%/
 
 echo "Equilibrating %wt_or_mt%..."
 
@@ -29,15 +29,15 @@ pmemd.cuda -i equilibration.in -c heat.rst7 -ref heat.rst7 \
        -O -o equilibration.out -inf equilibration.info \
        -r equilibration.rst7 -x equilibration.nc \
        -l equilibration.log
-cp equilibration.rst7 ../../../SASA/%wt_or_mt%/
+cp equilibration.rst7 ../../SASA/%wt_or_mt%/
 
 if [ -f ./sample.in ]; then
        echo "Sampling configuration space..."
        pmemd.cuda -i sample.in -c equilibration.rst7 \
               -ref equilibration.rst7 -p topology.parm7 \
-              -O -o sample.out -inf sample.in -r sample.rst7 \
+              -O -o sample.out -inf sample.info -r sample.rst7 \
               -x sample.nc -l sample.log
 fi
 
-cd ../../
+cd ../
 echo "Done."
