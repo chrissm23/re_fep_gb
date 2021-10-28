@@ -1,0 +1,9 @@
+Sample
+ &cntrl
+  imin = 0, nstlim = 50000000, irest = 1, ntx = 5, dt = 0.002, igb = 5,
+  ntt = 3, temp0 = 300.0, gamma_ln = 0.01, ig = -1,
+  ntc = 2, ntf = 2, cut = 9999.0,
+  ioutfm = 1, iwrap = 0,
+  ntwx = 10000, ntpr = 10000, ntwr = 50000, ntwv = -1,
+  ntr = 1, restraint_wt = 0.1, restraintmask = '@CA'
+ /
