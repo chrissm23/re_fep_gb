@@ -3,12 +3,11 @@
 # Submit REMD to cluster
 #
 #SBATCH --job-name=%residue_number%_%aminoacid_mutant%_remd_%wt_or_mt%
-#SBATCH --time=4-23:59:59
-#SBATCH --nodes=%n_nodes% #n_nodes = n_replicas/8
+#SBATCH --time=0-23:59:59
+#SBATCH --nodes=4
+#SBATCH --ntasks=32
+#SBATCH --overcommit
 #SBATCH --gres=gpu:1
-#SBATCH --cpus-per-task=1
-#SBATCH --ntasks-per-node=%n_replica_by_nodes% #n_replica divided my n_nodes%
-##SBATCH --ntasks=%n_tasks%
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=ch.sustay@physik.uni-muenchen.de
 #

@@ -6,7 +6,7 @@
 cpptraj -p topology.parm7 -y sample.nc <<_EOF
 
 for i=500;i<5001;i+=500
-  trajout restart_$i.rst7 restartnc onlyframes $i
+  trajout restart_\$i.rst7 restartnc onlyframes $i
 done
 
 run
@@ -19,6 +19,8 @@ restart_files=( $pattern )
 wt_or_mt=${PWD##*/}
 
 for i in ${!restart_files[@]}; do
-  mkdir ../../RE/$wt_or_mt/$i
+  if [ ! -d "../../RE/$wt_or_mt/$i" ]; then
+    mkdir ../../RE/$wt_or_mt/$i
+  fi
   cp ${restart_files[$i]} ../../RE/$wt_or_mt/$i/restart.rst7
 done
