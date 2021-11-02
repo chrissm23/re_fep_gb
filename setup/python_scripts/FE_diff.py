@@ -233,7 +233,8 @@ def get_averageE(replicas_pd, replica1, replica2):
 if __name__ == '__main__':
     open("FE_diff.out", "w").close()
     FE_dir = './'
-    snapshot_windows = [name for name in os.listdir(FE_dir) if os.path.isdir(os.path.join(FE_dir, name))]
+    snapshot_windows = [name for name in os.listdir('./RE/WT') if os.path.isdir(os.path.join('./RE/WT', name))]
+    snapshot_windows.sort()
     fep_energies = []
     bar_energies = []
     sasa_energies = []
@@ -263,19 +264,19 @@ if __name__ == '__main__':
     # Get averages of DeltaG
     av_bar_wt = average(bar_energies[::2])
     av_bar_mt = average(bar_energies[1::2])
-    print(f'BAR: Average DeltaG WT = {round(av_bar_wt, 2)}\n')
+    print(f'BAR WT: Average DeltaG = {round(av_bar_wt, 2)}\n')
     with open("FE_diff.out", "a") as f:
-        print(f'Forward DeltaG WT = {round(av_bar_wt, 2)}\n', file=f)
-    print(f'BAR: Average DeltaG MT = {round(av_bar_mt, 2)}\n')
+        print(f'BAR WT: Average DeltaG = {round(av_bar_wt, 2)}\n', file=f)
+    print(f'BAR MT: Average DeltaG = {round(av_bar_mt, 2)}\n')
     with open("FE_diff.out", "a") as f:
-        print(f'Forward DeltaG MT = {round(av_bar_mt, 2)}\n', file=f)
+        print(f'BAR MT: Forward DeltaG = {round(av_bar_mt, 2)}\n', file=f)
     av_fep_forward_wt = average([fep_energies[i][0] for i in range(len(fep_energies))][::2])
     av_fep_backward_wt = average([fep_energies[i][1] for i in range(len(fep_energies))][::2])
-    print(f'FEP: Average Forward DeltaG = {round(av_fep_forward_wt, 2)}, Average Backward DeltaG = {round(av_fep_backward_wt, 2)}\n')
+    print(f'FEP WT: Average Forward DeltaG = {round(av_fep_forward_wt, 2)}, Average Backward DeltaG = {round(av_fep_backward_wt, 2)}\n')
     with open("FE_diff.out", "a") as f:
-        print(f'Forward DeltaG = {round(av_fep_forward_wt, 2)}, Backward DeltaG = {round(av_fep_backward_wt, 2)}\n', file=f)
+        print(f'FEP WT: Average Forward DeltaG = {round(av_fep_forward_wt, 2)}, Average Backward DeltaG = {round(av_fep_backward_wt, 2)}\n', file=f)
     av_fep_forward_mt = average([fep_energies[i][0] for i in range(len(fep_energies))][1::2])
     av_fep_backward_mt = average([fep_energies[i][1] for i in range(len(fep_energies))][1::2])
-    print(f'FEP: Average Forward DeltaG = {round(av_fep_forward_mt, 2)}, Average Backward DeltaG = {round(av_fep_backward_mt, 2)}\n')
+    print(f'FEP MT: Average Forward DeltaG = {round(av_fep_forward_mt, 2)}, Average Backward DeltaG = {round(av_fep_backward_mt, 2)}\n')
     with open("FE_diff.out", "a") as f:
-        print(f'Forward DeltaG = {round(av_fep_forward_mt, 2)}, Backward DeltaG = {round(av_fep_backward_mt, 2)}\n', file=f)
+        print(f'FEP MT: Average Forward DeltaG = {round(av_fep_forward_mt, 2)}, FEP MT: Average Backward DeltaG = {round(av_fep_backward_mt, 2)}\n', file=f)
