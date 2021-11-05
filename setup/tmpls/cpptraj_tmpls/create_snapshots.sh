@@ -5,7 +5,7 @@
 
 cpptraj -p topology.parm7 -y sample.nc <<_EOF
 
-for i=500;i<5001;i+=500
+for i=500;i<5001;i+=250
   trajout restart_\$i.rst7 restartnc onlyframes \$i
 done
 
