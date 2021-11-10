@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.lib.function_base import average
 from scipy.constants import k as k_B
 from scipy.constants import N_A
 import pandas as pd
@@ -211,7 +210,7 @@ def get_SASA(path):
             break
         if 'ESURF=' in line:
             esurf_lines.append(float(line.split('=')[1].strip()))
-    E_surf = average(esurf_lines)
+    E_surf = np.average(esurf_lines)
 
     return E_surf
 
@@ -287,13 +286,13 @@ if __name__ == '__main__':
                     print(f'Forward DeltaG = {round(DeltaG, 2)}\n', file=f)
 
         # Get averages of DeltaG and print warnings
-        bar_avs.append(average(bar_energies))
+        bar_avs.append(np.average(bar_energies))
         print(f'BAR {wt_or_mt}: Average DeltaG = {round(bar_avs[-1], 2)}\n')
         with open("FE_diff.out", "a") as f:
             print(f'BAR {wt_or_mt}: Average DeltaG = {round(bar_avs[0], 2)}\n', file=f)
 
-        fep_avs_f.append(average([fep_energies[i][1] for i in range(len(fep_energies))]))
-        fep_avs_b.append(average([fep_energies[i][0] for i in range(len(fep_energies))]))
+        fep_avs_f.append(np.average([fep_energies[i][1] for i in range(len(fep_energies))]))
+        fep_avs_b.append(np.average([fep_energies[i][0] for i in range(len(fep_energies))]))
         print(f'FEP {wt_or_mt}: Average Forward DeltaG = {round(fep_avs_f[-1], 2)}, Average Backward DeltaG = {round(fep_avs_b[-1], 2)}\n')
         with open("FE_diff.out", "a") as f:
             print(f'FEP {wt_or_mt}: Average Forward DeltaG = {round(fep_avs_f[-1], 2)}, Average Backward DeltaG = {round(fep_avs_b[-1], 2)}\n', file=f)
