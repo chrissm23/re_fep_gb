@@ -234,7 +234,6 @@ def get_averageE(replicas_pd, replica1, replica2):
     return epot2_av - epot1_av
 
 if __name__ == '__main__':
-    open("FE_diff.out", "w").close()
     FE_dir = './'
     snapshot_windows = [name for name in os.listdir('./RE/WT') if os.path.isdir(os.path.join('./RE/WT', name))]
     snapshot_windows.sort()
@@ -259,8 +258,6 @@ if __name__ == '__main__':
         for snapshot in snapshot_windows:
             # Parse remlog file
             print(f'Calculating DeltaG of {wt_or_mt}, snapshot {snapshot}, from H-REMD...\n')
-            with open("FE_diff.out", "a") as f:
-                print(f'Calculating DeltaG of {wt_or_mt}, snapshot {snapshot}, from H-REMD...\n', file=f)
             replicas_pd = read_remlog(FE_dir + f'/RE/{wt_or_mt}/{snapshot}/rem.log')
 
             # Calculate DeltaG using FEP
@@ -271,8 +268,6 @@ if __name__ == '__main__':
             else:
                 fep_energies.append([DeltaG_forward, DeltaG_backward])
                 print(f'Forward DeltaG = {round(DeltaG_forward, 2)}, Backward DeltaG = {round(DeltaG_backward, 2)}\n')
-                with open("FE_diff.out", "a") as f:
-                    print(f'Forward DeltaG = {round(DeltaG_forward, 2)}, Backward DeltaG = {round(DeltaG_backward, 2)}\n', file=f)
             
             # Calculate DeltaG using BAR
             try:
@@ -282,37 +277,25 @@ if __name__ == '__main__':
             else:
                 bar_energies.append(DeltaG)
                 print(f'Forward DeltaG = {round(DeltaG, 2)}\n')
-                with open("FE_diff.out", "a") as f:
-                    print(f'Forward DeltaG = {round(DeltaG, 2)}\n', file=f)
 
         # Get averages of DeltaG and print warnings
         bar_avs.append(np.average(bar_energies))
         print(f'BAR {wt_or_mt}: Average DeltaG = {round(bar_avs[-1], 2)}\n')
-        with open("FE_diff.out", "a") as f:
-            print(f'BAR {wt_or_mt}: Average DeltaG = {round(bar_avs[0], 2)}\n', file=f)
 
         fep_avs_f.append(np.average([fep_energies[i][1] for i in range(len(fep_energies))]))
         fep_avs_b.append(np.average([fep_energies[i][0] for i in range(len(fep_energies))]))
         print(f'FEP {wt_or_mt}: Average Forward DeltaG = {round(fep_avs_f[-1], 2)}, Average Backward DeltaG = {round(fep_avs_b[-1], 2)}\n')
-        with open("FE_diff.out", "a") as f:
-            print(f'FEP {wt_or_mt}: Average Forward DeltaG = {round(fep_avs_f[-1], 2)}, Average Backward DeltaG = {round(fep_avs_b[-1], 2)}\n', file=f)
 
         if abs(fep_avs_f[-1]) < abs(fep_avs_b[-1]) - 1 or abs(fep_avs_f[-1]) > abs(fep_avs_b[-1]) + 1:
             print(f'Convergence error\n')
-            with open("FE_diff.out", "a") as f:
-                        print(f'Convergence error\n', file=f)
 
         if counter_fep_errors > 0 or counter_bar_errors > 0:
             print(f'Warning: {counter_fep_errors}/{len(snapshot_windows)} explosions\n')
-            with open("FE_diff.out", "a") as f:
-                        print(f'Warning: {counter_fep_errors}/{len(snapshot_windows)} explosions\n', file=f)
 
     for wt_or_mt in ['WT', 'MT']:
         E_surf = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
         sasas.append(E_surf)
         print(f'{wt_or_mt} E_surf = {round(E_surf, 2)}\n')
-        with open("FE_diff.out", "a") as f:
-            print(f'{wt_or_mt} E_surf = {round(E_surf, 2)}\n', file=f)
 
     if len(bar_avs) > 1:
         G_diff_fep_f = fep_avs_f[0] - fep_avs_f[1]
@@ -325,11 +308,5 @@ if __name__ == '__main__':
     sasa_diff = sasas[1] - sasas[0]
 
     print(f'DeltaG: {round(G_diff_bar, 2)}')
-    with open("FE_diff.out", "a") as f:
-        print(f'DeltaG: {round(G_diff_bar, 2)}', file=f)
     print(f'DeltaE_surf: {round(sasa_diff, 2)}')
-    with open("FE_diff.out", "a") as f:
-        print(f'DeltaE_surf: {round(sasa_diff, 2)}', file=f)
     print(f'DeltaG_total: {round(G_diff_bar + sasa_diff, 2)}')
-    with open("FE_diff.out", "a") as f:
-        print(f'DeltaG: {round(G_diff_bar + sasa_diff, 2)}', file=f)
