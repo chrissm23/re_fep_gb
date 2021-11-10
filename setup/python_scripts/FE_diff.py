@@ -311,9 +311,9 @@ if __name__ == '__main__':
     for wt_or_mt in ['WT', 'MT']:
         E_surf = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
         sasas.append(E_surf)
-        print(f'E_surf = {round(E_surf, 2)}\n')
+        print(f'{wt_or_mt} E_surf = {round(E_surf, 2)}\n')
         with open("FE_diff.out", "a") as f:
-            print(f'E_surf = {round(E_surf, 2)}\n', file=f)
+            print(f'{wt_or_mt} E_surf = {round(E_surf, 2)}\n', file=f)
 
     if len(bar_avs) > 1:
         G_diff_fep_f = fep_avs_f[0] - fep_avs_f[1]
