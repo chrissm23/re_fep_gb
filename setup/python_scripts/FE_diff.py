@@ -14,6 +14,10 @@ def correct_splitting_errors(line):
             new_element = line[i][line[i].find('.') + 3:]
             line.insert(i+1, new_element)
             line[i] = line[i][:line[i].find('.') + 3]
+        if line[i] == '********************' or (line[i].count('.') == 1 and line[i][:10] == '**********'):
+            new_element = line[i][10:]
+            line.insert(i+1, new_element)
+            line[i] = line[i][:10]
     return line
 
 def read_remlog(path):
