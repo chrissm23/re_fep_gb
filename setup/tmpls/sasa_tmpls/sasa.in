@@ -7,6 +7,7 @@ Equilibration
   ntp = 0, pres0 = 1.0, taup = 2.0,
   ioutfm = 1, iwrap = 0,
   ntwx = 100, ntpr = 100, ntwr = 500,
+  ntr = 1, restraint_wt = 0.1, restraintmask = '@CA',
  /
 
  &ewald
