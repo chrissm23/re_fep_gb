@@ -6,4 +6,5 @@ Replica Exchange
   ntb = 0, igb = 5, gremd_acyc = 1,
   ioutfm = 1, iwrap = 0,
   ntwx = 1000, ntpr = 10000, ntwr = 20000,
+  ntr = 1, restraint_wt = 0.1, restraintmask = '@CA',
  /
