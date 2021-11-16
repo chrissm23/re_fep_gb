@@ -231,14 +231,16 @@ class MutationReGbFe:
                 parm_files_topology = parm_files_mt
                 parm_files_topology_str = parm_files_mt_str
             # Create directories for equilibration and copy templates to them
-            for i in range(len(parm_files_topology)):
-                if not os.path.exists(f'{equil_dir}/{i}'):
-                    os.makedirs(f'{equil_dir}/{i}')
-                shutil.copyfile('setup/tmpls/equilibration_tmpls/heat.in', f'{equil_dir}/{i}/heat.in')
-                shutil.copyfile('setup/tmpls/equilibration_tmpls/equilibration.in', f'{equil_dir}/{i}/equilibration.in')
-                shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{parm_files_topology[i]}', f'{equil_dir}/{i}/topology.parm7')
-                if i == 0:
-                    shutil.copyfile(f'FE/minimization/{wt_or_mt}/minimization.rst7', f'{equil_dir}/{i}/minimization.rst7')
+            if not os.path.exists(f'{equil_dir}'):
+                os.makedirs(f'{equil_dir}')
+            shutil.copyfile('setup/tmpls/equilibration_tmpls/heat.in', f'{equil_dir}/heat.in')
+            shutil.copyfile('setup/tmpls/equilibration_tmpls/equilibration.in', f'{equil_dir}/equilibration.in')
+            shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{parm_files_topology[0]}', f'{equil_dir}/topology.parm7')
+            shutil.copyfile(f'FE/minimization/{wt_or_mt}/minimization.rst7', f'{equil_dir}/minimization.rst7')
+            if wt_or_mt != 'MT' or self.include_mut:
+                shutil.copyfile('setup/tmpls/cpptraj_tmpls/create_snapshots.sh', f'{equil_dir}/create_snapshots.sh')
+                get_data_n_general.make_executable(f'{equil_dir}/create_snapshots.sh')
+                shutil.copyfile('setup/tmpls/equilibration_tmpls/sample.in', f'{equil_dir}/sample.in')
             # Copy files to RE directory
             shutil.copyfile('setup/tmpls/re_tmpls/groupfile.ref', f'{rep_dir}/groupfile.ref')
             shutil.copyfile('setup/tmpls/re_tmpls/mdin.ref', f'{rep_dir}/mdin.ref')
@@ -258,7 +260,7 @@ class MutationReGbFe:
             for x in parm_files_topology:
                 shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}', f'{rep_dir}/{x}')
             # Copy files to SASA directory
-            shutil.copyfile('setup/tmpls/sasa_tmpl/sasa.in', f'{surf_dir}/sasa.in')
+            shutil.copyfile('setup/tmpls/sasa_tmpls/sasa.in', f'{surf_dir}/sasa.in')
             shutil.copyfile(f'setup/parms_n_pdbs/parms/parms_windows/{wt_or_mt.lower()}_0.parm7', f'{surf_dir}/topology.parm7')
         
         for x in ['WT', 'MT']:

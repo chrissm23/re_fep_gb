@@ -13,37 +13,31 @@
 
 module load amber
 
-cd %wt_or_mt%
+cd %wt_or_mt%/
 
-for i in $(ls -d * | sort -n); do
-       cd $i
-       echo "Equilibrating window $i"
+echo "Equilibrating %wt_or_mt%..."
 
-       if [ $i == 0 ]; then
-	       inpcrd=minimization.rst7
-       else
-	       inpcrd=../$((i-1))/equilibration.rst7
-       fi
+echo "Heating..."
+pmemd.cuda -i heat.in -c minimization.rst7 \
+       -ref minimization.rst7 -p topology.parm7 \
+       -O -o heat.out -inf heat.info -r heat.rst7 -x heat.nc \
+       -l heat.log
 
-       echo "Heating..."
-       pmemd.cuda -i heat.in -c $inpcrd -ref $inpcrd -p topology.parm7 \
-	       -O -o heat.out -inf heat.info -r heat.rst7 -x heat.nc \
-	       -l heat.log
+echo "Equilibrating..."
+pmemd.cuda -i equilibration.in -c heat.rst7 -ref heat.rst7 \
+       -p topology.parm7 \
+       -O -o equilibration.out -inf equilibration.info \
+       -r equilibration.rst7 -x equilibration.nc \
+       -l equilibration.log
+cp equilibration.rst7 ../../SASA/%wt_or_mt%/
 
-       echo "Equilibrating..."
-       pmemd.cuda -i equilibration.in -c heat.rst7 -p topology.parm7 \
-	       -O -o equilibration.out -inf equilibration.inf \
-	       -r equilibration.rst7 -x equilibration.nc \
-	       -l equilibration.log
+if [ -f ./sample.in ]; then
+       echo "Sampling configuration space..."
+       pmemd.cuda -i sample.in -c equilibration.rst7 \
+              -ref equilibration.rst7 -p topology.parm7 \
+              -O -o sample.out -inf sample.info -r sample.rst7 \
+              -x sample.nc -l sample.log
+fi
 
-       if [ "$i" -lt 9 ]; then
-	       cp equilibration.rst7 ../../../RE/%wt_or_mt%/equil.rep.00$((i+1))
-       else
-	       cp equilibration.rst7 ../../../RE/%wt_or_mt%/equil.rep.0$((i+1))
-       fi
-       
-       cd ..
-done
-
-cd ..
+cd ../
 echo "Done."

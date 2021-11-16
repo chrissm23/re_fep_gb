@@ -1,7 +1,7 @@
 res_pos=34
 intermediate=ALA
 include_mut=0
-res_mut=VAL
+res_mut=GLY
 chains=tripeptide
 function_GB=root6
 function_ele=linear

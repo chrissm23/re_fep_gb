@@ -1,2 +1,2 @@
 # Replica REPNUM
--O -i mdin.rep.REPNUM -p HAMILTONIAN -c equil.rep.REPNUM -o mdout.rep.REPNUM -r rep.REPNUM.rst7 -x rep.REPNUM.nc
+-O -i ../mdin.rep.REPNUM -p ../HAMILTONIAN -c restart.rst7 -ref restart.rst7 -o mdout.rep.REPNUM -r rep.REPNUM.rst7 -x rep.REPNUM.nc

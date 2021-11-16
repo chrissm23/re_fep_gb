@@ -1,6 +1,6 @@
 Heating
  &cntrl
-  imin = 0, nstlim = 30000, irest = 0, ntx = 1, dt = 0.002, igb = 5,
+  imin = 0, nstlim = 10000, irest = 0, ntx = 1, dt = 0.002, igb = 5,
   nmropt = 1,
   ntt = 1, temp0 = 300.0, tempi = 5.0, taup = 1.0,
   ntb = 0, cut = 9999.0,
@@ -8,14 +8,14 @@ Heating
   ioutfm = 1, iwrap = 0,
   ntwx = 1000, ntpr = 1000, ntwr = 5000,
   ntr = 1, restraint_wt = 5.00,
-  restraintmask='!@CA,C,O,N',
+  restraintmask='@CA,C,O,N',
  /
  &ewald
  /
 
  &wt
   type='TEMP0',
-  istep1 = 0, istep2 = 25000,
+  istep1 = 0, istep2 = 9000,
   value1 = 5.0, value2 = 300.0,
  /
 
