@@ -82,6 +82,9 @@ def DeltaG_FEP(replicas_pd):
     nan_counter_f2 = 0
     nan_counter_b1 = 0
     nan_counter_b2 = 0
+    # Array of Boltzmann factors for distributions
+    exp_deltaE_forward_1 = np.zeros((n_exchanges, int(n_replicas/2)))
+    exp_deltaE_forward_2 = np.zeros((n_exchanges, int(n_replicas/2)-1))
 
     for j in range(n_exchanges):
         if j%2 == 0: # Exchanges starting with 1 to last replica
@@ -90,7 +93,9 @@ def DeltaG_FEP(replicas_pd):
             E_i_forward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_1)'].to_numpy()
             if not (np.isnan(np.sum(E_ip1_forward_2)) or np.isnan(np.sum(E_i_forward_2))):
                 DeltaE_forward_2 = -(E_ip1_forward_2[1:] - E_i_forward_2[:-1])*beta
-                exp_sum_forward_2 += np.exp(DeltaE_forward_2)
+                exp_forward_2 = np.exp(DeltaE_forward_2)
+                exp_deltaE_forward_2[j,:] = exp_forward_2
+                exp_sum_forward_2 += exp_forward_2
             else:
                 nan_counter_f2 += 1
 
@@ -109,6 +114,8 @@ def DeltaG_FEP(replicas_pd):
             E_i_forward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_1)'].to_numpy()
             if not (np.isnan(np.sum(E_ip1_forward_1)) or np.isnan(np.sum(E_i_forward_1))):
                 DeltaE_forward_1 = -(E_ip1_forward_1 - E_i_forward_1)*beta
+                exp_forward_1 = np.exp(DeltaE_forward_1)
+                exp_deltaE_forward_1[j,:] = exp_forward_1
                 exp_sum_forward_1 += np.exp(DeltaE_forward_1)
             else:
                 nan_counter_f1 += 1
@@ -136,8 +143,16 @@ def DeltaG_FEP(replicas_pd):
     # Total free energy difference
     DeltaG_backward = np.sum(np.concatenate([DeltaGs_backward_1, DeltaGs_backward_2]))
     DeltaG_forward = np.sum(np.concatenate([DeltaGs_forward_1, DeltaGs_forward_2]))
+    # Delete remaning zeros and intercalate arrays with Boltzmann factors
+    exp_deltaE_forward_1 = exp_deltaE_forward_1[~np.all(exp_deltaE_forward_1 == 0, axis=1)]
+    exp_deltaE_forward_2 = exp_deltaE_forward_2[~np.all(exp_deltaE_forward_2 == 0, axis=1)]
+    row1, col1 = np.shape(exp_deltaE_forward_1)
+    _, col2 = np.shape(exp_deltaE_forward_2)
+    exp_deltaE = np.zeros((row1, col1+col2))
+    exp_deltaE[:,::2] = exp_deltaE_forward_1
+    exp_deltaE[:,1::2] = exp_deltaE_forward_2
 
-    return DeltaG_backward, DeltaG_forward
+    return [DeltaG_backward, DeltaG_forward, exp_deltaE]
 
 def DeltaG_BAR(replicas_pd):
     """Calculate DeltaG using BAR"""
@@ -262,12 +277,13 @@ if __name__ == '__main__':
 
             # Calculate DeltaG using FEP
             try:
-                [DeltaG_backward, DeltaG_forward] = DeltaG_FEP(replicas_pd)
+                [DeltaG_backward, DeltaG_forward, exponentials] = DeltaG_FEP(replicas_pd)
             except:
                 counter_fep_errors += 1
             else:
                 fep_energies.append([DeltaG_forward, DeltaG_backward])
                 print(f'Forward DeltaG = {round(DeltaG_forward, 2)}, Backward DeltaG = {round(DeltaG_backward, 2)}\n')
+                np.savetxt(f'exp_deltaE_{snapshot}.out', exponentials, delimiter=',')
             
             # Calculate DeltaG using BAR
             try:
