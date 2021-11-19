@@ -1,8 +1,12 @@
 import numpy as np
+from numpy.core.fromnumeric import repeat
 from scipy.constants import k as k_B
 from scipy.constants import N_A
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import rcParams
 
 import pymbar
 
@@ -85,6 +89,8 @@ def DeltaG_FEP(replicas_pd):
     # Array of Boltzmann factors for distributions
     exp_deltaE_forward_1 = np.zeros((n_exchanges, int(n_replicas/2)))
     exp_deltaE_forward_2 = np.zeros((n_exchanges, int(n_replicas/2)-1))
+    exp_deltaE_backward_1 = np.zeros((n_exchanges, int(n_replicas/2)))
+    exp_deltaE_backward_2 = np.zeros((n_exchanges, int(n_replicas/2)-1))
 
     for j in range(n_exchanges):
         if j%2 == 0: # Exchanges starting with 1 to last replica
@@ -104,7 +110,9 @@ def DeltaG_FEP(replicas_pd):
             E_i_backward_2 = replicas_pd[j][replicas_pd[j].index % 2 == 0]['PotE(x_1)'].to_numpy()
             if not (np.isnan(np.sum(E_im1_backward_2)) or np.isnan(np.sum(E_i_backward_2))):
                 DeltaE_backward_2 = -(E_im1_backward_2[:-1] - E_i_backward_2[1:])*beta
-                exp_sum_backward_2 += np.exp(DeltaE_backward_2)
+                exp_backward_2 = np.exp(DeltaE_backward_2)
+                exp_deltaE_backward_2[j,:] = exp_backward_2
+                exp_sum_backward_2 += exp_backward_2
             else:
                 nan_counter_b2 += 1
 
@@ -125,7 +133,9 @@ def DeltaG_FEP(replicas_pd):
             E_i_backward_1 = replicas_pd[j][replicas_pd[j].index % 2 == 1]['PotE(x_1)'].to_numpy()
             if not (np.isnan(np.sum(E_im1_backward_1)) or np.isnan(np.sum(E_i_backward_1))):
                 DeltaE_backward_1 = -(E_im1_backward_1 - E_i_backward_1)*beta
-                exp_sum_backward_1 += np.exp(DeltaE_backward_1)
+                exp_backward_1 = np.exp(DeltaE_backward_1)
+                exp_deltaE_backward_1[j,:] = exp_backward_1
+                exp_sum_backward_1 += exp_backward_1
             else:
                 nan_counter_b1 += 1
 
@@ -143,16 +153,26 @@ def DeltaG_FEP(replicas_pd):
     # Total free energy difference
     DeltaG_backward = np.sum(np.concatenate([DeltaGs_backward_1, DeltaGs_backward_2]))
     DeltaG_forward = np.sum(np.concatenate([DeltaGs_forward_1, DeltaGs_forward_2]))
+
     # Delete remaning zeros and intercalate arrays with Boltzmann factors
+    # Forward
     exp_deltaE_forward_1 = exp_deltaE_forward_1[~np.all(exp_deltaE_forward_1 == 0, axis=1)]
     exp_deltaE_forward_2 = exp_deltaE_forward_2[~np.all(exp_deltaE_forward_2 == 0, axis=1)]
     row1, col1 = np.shape(exp_deltaE_forward_1)
-    _, col2 = np.shape(exp_deltaE_forward_2)
-    exp_deltaE = np.zeros((row1, col1+col2))
-    exp_deltaE[:,::2] = exp_deltaE_forward_1
-    exp_deltaE[:,1::2] = exp_deltaE_forward_2
+    row2, col2 = np.shape(exp_deltaE_forward_2)
+    exp_deltaE_fwd = np.zeros((max(row1,row2), col1+col2))
+    exp_deltaE_fwd[:row1,::2] = exp_deltaE_forward_1
+    exp_deltaE_fwd[:row2,1::2] = exp_deltaE_forward_2
+    # Backward
+    exp_deltaE_backward_1 = exp_deltaE_backward_1[~np.all(exp_deltaE_backward_1 == 0, axis=1)]
+    exp_deltaE_backward_2 = exp_deltaE_backward_2[~np.all(exp_deltaE_backward_2 == 0, axis=1)]
+    row1, col1 = np.shape(exp_deltaE_backward_1)
+    row2, col2 = np.shape(exp_deltaE_backward_2)
+    exp_deltaE_bwd = np.zeros((max(row1,row2), col1+col2))
+    exp_deltaE_bwd[:row1,::2] = exp_deltaE_backward_1
+    exp_deltaE_bwd[:row2,1::2] = exp_deltaE_backward_2
 
-    return [DeltaG_backward, DeltaG_forward, exp_deltaE]
+    return [DeltaG_backward, DeltaG_forward, exp_deltaE_fwd, exp_deltaE_bwd]
 
 def DeltaG_BAR(replicas_pd):
     """Calculate DeltaG using BAR"""
@@ -248,6 +268,43 @@ def get_averageE(replicas_pd, replica1, replica2):
 
     return epot2_av - epot1_av
 
+def animated_histogram(exp_deltaEs):
+    """Function to generate animated histogram of distribution of Boltzmann factors"""
+    bar_containers = []
+    y_axis = 0
+    x_axis = [0, 0]
+    fig, ax = plt.subplots()
+    for data in exp_deltaEs:
+        # Get rectangles
+        _, _, bar_container = ax.hist(data, bins='auto', density=True, fc="green")
+        bar_containers.append(bar_container.patches)
+        if data == exp_deltaEs[0]:
+            x_axis[0] = bar_container.patches[0].xy[0]
+        # Get x and y limits
+        for rect in bar_container.patches:
+            if rect.get_height() > y_axis:
+                y_axis = rect.get_height()
+            if rect.xy[0] < x_axis[0]:
+                x_axis[0] = rect.xy[0]
+            if rect.xy[0]+rect.get_width() > x_axis[1] and rect.get_height() > 0.01*y_axis:
+                x_axis[1] = rect.xy[0]+rect.get_width()
+
+    ax.clear()
+
+    def func(frame_number):
+        ax.clear()
+        _, _, bar_container = ax.hist(exp_deltaEs[frame_number], bins='auto', density=True, fc="green")
+        ax.set_ylim(top=y_axis)
+        ax.set_xlim(x_axis[0], x_axis[1])
+        ax.set_xlabel(r'$e^{-\beta\Delta U}$')
+        ax.set_ylabel('Probability density')
+        return bar_container
+
+    rcParams['animation.convert_path'] = '/usr/bin/convert'
+    fep_histograms_animation = animation.FuncAnimation(fig, func, frames=len(bar_containers), interval= 5, blit=True, repeat=True)
+    fep_histograms_animation.save('FEP_distribution.gif', writer='imagemagick', fps=2)
+
+
 if __name__ == '__main__':
     FE_dir = './'
     snapshot_windows = [name for name in os.listdir('./RE/WT') if os.path.isdir(os.path.join('./RE/WT', name))]
@@ -274,16 +331,24 @@ if __name__ == '__main__':
             # Parse remlog file
             print(f'Calculating DeltaG of {wt_or_mt}, snapshot {snapshot}, from H-REMD...\n')
             replicas_pd = read_remlog(FE_dir + f'/RE/{wt_or_mt}/{snapshot}/rem.log')
+            if snapshot == snapshot_windows[0]:
+                Temp = replicas_pd[0]['Temperature'].iloc[0] # Temperature
+                beta = 4184/(k_B*Temp*N_A)
+                n_replicas = len(replicas_pd[0].index)
+                exp_deltaEs_forward = [[] for _ in range(n_replicas-1)]
+                exp_deltaEs_backward = [[] for _ in range(n_replicas-1)]
 
             # Calculate DeltaG using FEP
             try:
-                [DeltaG_backward, DeltaG_forward, exponentials] = DeltaG_FEP(replicas_pd)
+                [DeltaG_backward, DeltaG_forward, exponentials_fwd, exponentials_bwd] = DeltaG_FEP(replicas_pd)
             except:
                 counter_fep_errors += 1
             else:
                 fep_energies.append([DeltaG_forward, DeltaG_backward])
                 print(f'Forward DeltaG = {round(DeltaG_forward, 2)}, Backward DeltaG = {round(DeltaG_backward, 2)}\n')
-                np.savetxt(f'exp_deltaE_{snapshot}.out', exponentials, delimiter=',')
+                for i in range(len(exp_deltaEs_forward)):
+                    exp_deltaEs_forward[i].extend(exponentials_fwd[exponentials_fwd[:,i] != 0, i].tolist())
+                    exp_deltaEs_backward[i].extend(exponentials_bwd[exponentials_bwd[:,i] != 0, i].tolist())
             
             # Calculate DeltaG using BAR
             try:
@@ -294,13 +359,28 @@ if __name__ == '__main__':
                 bar_energies.append(DeltaG)
                 print(f'Forward DeltaG = {round(DeltaG, 2)}\n')
 
+        # Get FEP deltaG over all samples
+        fep_forward_allavg = [np.average(exp_deltaEs_forward[i]) for i in range(len(exp_deltaEs_forward))]
+        fep_forward_allstd = [np.std(exp_deltaEs_forward[i]) for i in range(len(exp_deltaEs_forward))]
+        filtered_exp_deltaEs_forward = [list(filter(lambda b_factor: 
+            (b_factor <= fep_forward_allavg[i]+5*fep_forward_allstd[i]) and (b_factor >= fep_forward_allavg[i]-5*fep_forward_allstd[i]), 
+            exp_deltaEs_forward[i])) 
+            for i in range(len(exp_deltaEs_forward))]
+        fep_forward = sum(-np.log(fep_forward_allavg)/beta)
+        fep_backward_allavg = [np.average(exp_deltaEs_backward[i]) for i in range(len(exp_deltaEs_backward))]
+        fep_backward = sum(-np.log(fep_backward_allavg)/beta)
+        fep_backward_allstd = [np.std(exp_deltaEs_backward[i]) for i in range(len(exp_deltaEs_backward))]
+
+        animated_histogram(filtered_exp_deltaEs_forward)
+
         # Get averages of DeltaG and print warnings
         bar_avs.append(np.average(bar_energies))
         print(f'BAR {wt_or_mt}: Average DeltaG = {round(bar_avs[-1], 2)}\n')
 
-        fep_avs_f.append(np.average([fep_energies[i][1] for i in range(len(fep_energies))]))
-        fep_avs_b.append(np.average([fep_energies[i][0] for i in range(len(fep_energies))]))
-        print(f'FEP {wt_or_mt}: Average Forward DeltaG = {round(fep_avs_f[-1], 2)}, Average Backward DeltaG = {round(fep_avs_b[-1], 2)}\n')
+        fep_avs_f.append(np.average([fep_energies[i][0] for i in range(len(fep_energies))]))
+        fep_avs_b.append(np.average([fep_energies[i][1] for i in range(len(fep_energies))]))
+        print(f'FEP {wt_or_mt}: Average Forward DeltaG = {round(fep_avs_f[-1], 2)}, Average Backward DeltaG = {round(fep_avs_b[-1], 2)}')
+        print(f'FEP {wt_or_mt}: Forward DeltaG = {round(fep_forward, 2)}, Backward DeltaG = {round(fep_backward, 2)}\n')
 
         if abs(fep_avs_f[-1]) < abs(fep_avs_b[-1]) - 1 or abs(fep_avs_f[-1]) > abs(fep_avs_b[-1]) + 1:
             print(f'Convergence error\n')
