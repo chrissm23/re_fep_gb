@@ -274,9 +274,21 @@ def animated_histogram(exp_deltaEs):
     y_axis = 0
     x_axis = [0, 0]
     fig, ax = plt.subplots()
+
+    def auto_bins(data):
+        a_unsorted = np.array(data)
+        left_cap, right_cap = a_unsorted.min(), a_unsorted.max()
+        a = np.sort(a_unsorted) - left_cap
+        fd = np.lib.histograms._hist_bin_fd(a, range)
+        left_edges = a//fd * fd
+        right_edges = left_edges + fd
+        new_bins = np.unique(np.concatenate((left_edges, right_edges))) + left_cap
+        return np.append(new_bins, right_cap+fd)
+
     for data in exp_deltaEs:
         # Get rectangles
-        _, _, bar_container = ax.hist(data, bins='auto', density=True, fc="green")
+        bins_automatic = auto_bins(data)
+        _, _, bar_container = ax.hist(data, bins=bins_automatic, density=True, fc="green")
         bar_containers.append(bar_container.patches)
         if data == exp_deltaEs[0]:
             x_axis[0] = bar_container.patches[0].xy[0]
@@ -293,7 +305,8 @@ def animated_histogram(exp_deltaEs):
 
     def func(frame_number):
         ax.clear()
-        _, _, bar_container = ax.hist(exp_deltaEs[frame_number], bins='auto', density=True, fc="green")
+        bins_automatic = auto_bins(exp_deltaEs[frame_number])
+        _, _, bar_container = ax.hist(exp_deltaEs[frame_number], bins=bins_automatic, density=True, fc="green")
         ax.set_ylim(top=y_axis)
         ax.set_xlim(x_axis[0], x_axis[1])
         ax.set_xlabel(r'$e^{-\beta\Delta U}$')
