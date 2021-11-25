@@ -18,7 +18,7 @@ cd %wt_or_mt%
 
 for i in */; do
 	cd $i
-	echo "Running H-REMD..."
+	echo "Running H-REMD for snapshot $i..."
 	mpirun -n %n_replicas% pmemd.cuda.MPI -ng %n_replicas% -groupfile ../groupfile -rem 3
 	cd ..
 done
