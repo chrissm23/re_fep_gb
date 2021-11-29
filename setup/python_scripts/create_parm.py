@@ -78,7 +78,7 @@ def modify_og_GBRadius(modifiers, include_mut):
                     new_value = value - value*proportion
                 parmed.tools.change(wt_or_mt, 'RADII', f'@{atom}', f'{new_value}').execute()
     
-    print("Modifing original GB Radius...")
+    print("Modifying original GB Radius...")
     if not isinstance(modifiers, list):
         if '+' in modifiers:
             [mask, proportion] = modifiers.split('+')
