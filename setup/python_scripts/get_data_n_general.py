@@ -70,6 +70,12 @@ def read_input(control_file):
                     control_dict['function_epsilonlj'] = functional
                 else:
                     raise Exception('Function for function_epsilonlj not recognized.')
+            elif parameter_name == 'gb_radius_mod':
+                modifiers = control[1].strip().split(',')
+                if len(modifiers) > 1:
+                    control_dict['Rgb_modifiers'] = modifiers
+                if len(modifiers) == 1 and modifiers[0]:
+                    control_dict['Rgb_modifiers'] = modifiers[0]
     
     # Check for unexpected number of values in the control parameters
     if isinstance(control_dict['chains'], list):

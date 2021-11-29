@@ -44,6 +44,65 @@ def create_og_parms(path_wt_pdb, path_mt_pdb):
     subprocess.call(mt_bash_path)
     print("Parameter files created.")
 
+def modify_og_GBRadius(modifiers, include_mut):
+    """Modifies GB radius of atoms with type atom_types from parmed_object through either a multiplier or a set value"""
+    # Leap generated parameter files
+    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
+    wt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/wt_0.rst7'
+    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7'
+    mt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/mt_0.rst7'
+
+    # Import to ParmEd
+    wt_parmed = parmed.amber.AmberParm(wt_parm_path, wt_rst_path)
+    if include_mut:
+        mt_parmed = parmed.amber.AmberParm(mt_parm_path, mt_rst_path)
+
+    def Rgb_modify(mask, proportion):
+        """Change initial GB radius of mask by proportion"""
+        if include_mut:
+            topologies = [wt_parmed, mt_parmed]
+        else:
+            topologies = [wt_parmed]
+        for wt_or_mt in topologies:
+            if mask == 'all':
+                residues_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(wt_or_mt, ':*')))
+            else:
+                residues_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(wt_or_mt, f':{mask}')))
+            atom_numbers = residues_details['ATOM'].tolist() # Get atom numbers of mutated residues
+
+            for atom in atom_numbers:
+                value = residues_details[residues_details['ATOM'] == atom]['GB Radius'].iloc[0]
+                if proportion > 0:
+                    new_value = value + value*proportion
+                else:
+                    new_value = value - value*proportion
+                parmed.tools.change(wt_or_mt, 'RADII', f'@{atom}', f'{new_value}').execute()
+    
+    print("Modifing original GB Radius...")
+    if not isinstance(modifiers, list):
+        if '+' in modifiers:
+            [mask, proportion] = modifiers.split('+')
+            proportion = float(proportion)
+            Rgb_modify(mask, proportion)
+        elif '-' in modifiers:
+            [mask, proportion] = modifiers.split('-')
+            proportion = -float(proportion)
+            Rgb_modify(mask, proportion)
+    else:
+        for modifier in modifiers:
+            if '+' in modifier:
+                [mask, proportion] = modifier.split('+')
+                proportion = float(proportion)
+                Rgb_modify(mask, proportion)
+            elif '-' in modifier:
+                [mask, proportion] = modifier.split('-')
+                proportion = -float(proportion)
+                Rgb_modify(mask, proportion)
+
+    parmed.tools.outparm(wt_parmed, wt_parm_path).execute()
+    if include_mut:
+        parmed.tools.outparm(mt_parmed, mt_parm_path).execute()
+
 def get_new_LJParms(parmed_object, residue_mask, functions, windows):
     """Creates new LJ atom types and outputs new AmberParm bojects with modified LJ  matrix"""
     residue_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(parmed_object, f':{residue_mask}')))

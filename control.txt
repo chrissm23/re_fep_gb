@@ -8,3 +8,4 @@ function_ele=quadratic
 function_Rlj=linear
 function_epsilonlj=linear
 n_windows_per_topology=32
+gb_radius_mod=all+0.1

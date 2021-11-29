@@ -192,6 +192,7 @@ class MutationReGbFe:
     def create_parms(self):
         """Creates parameter files of WT and mutant"""
         create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path) # Create parameter files from original WT and mutant structures
+        create_parm.modify_og_GBRadius(self.gb_modifiers, self.include_mut) # Modify original GB radius
 
         print("Creating intermediate parameter files...")
         # Create intermediate parameter files
