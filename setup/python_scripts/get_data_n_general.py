@@ -71,7 +71,7 @@ def read_input(control_file):
                 else:
                     raise Exception('Function for function_epsilonlj not recognized.')
             elif parameter_name == 'gb_radius_mod':
-                modifiers = control[1].strip().split(',')
+                modifiers = control[1].strip().split(';')
                 if len(modifiers) > 1:
                     control_dict['Rgb_modifiers'] = modifiers
                 if len(modifiers) == 1 and modifiers[0]:

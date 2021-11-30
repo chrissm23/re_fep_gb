@@ -67,7 +67,7 @@ def modify_og_GBRadius(modifiers, include_mut):
             if mask == 'all':
                 residues_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(wt_or_mt, ':*')))
             else:
-                residues_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(wt_or_mt, f':{mask}')))
+                residues_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(wt_or_mt, f'{mask}')))
             atom_numbers = residues_details['ATOM'].tolist() # Get atom numbers of mutated residues
 
             for atom in atom_numbers:
