@@ -136,16 +136,19 @@ def details_str_to_pd(string):
         table_list.append(line.split())
 
     table_np = np.array(table_list)
-    table_pd = pd.DataFrame(table_np, columns=table_headers)
-    table_pd['ATOM'] = pd.to_numeric(table_pd['ATOM'], downcast="integer")
-    table_pd['RES'] = pd.to_numeric(table_pd['RES'], downcast="integer")
-    table_pd['At.#'] = pd.to_numeric(table_pd['At.#'], downcast="integer")
-    table_pd['LJ Radius'] = pd.to_numeric(table_pd['LJ Radius'], downcast="float")
-    table_pd['LJ Depth'] = pd.to_numeric(table_pd['LJ Depth'], downcast="float")
-    table_pd['Mass'] = pd.to_numeric(table_pd['Mass'], downcast="float")
-    table_pd['Charge'] = pd.to_numeric(table_pd['Charge'], downcast="float")
-    table_pd['GB Radius'] = pd.to_numeric(table_pd['GB Radius'], downcast="float")
-    table_pd['GB Screen'] = pd.to_numeric(table_pd['GB Screen'], downcast="float")
+    if table_np.size == 0:
+        table_pd = pd.DataFrame(columns=table_headers)
+    else:
+        table_pd = pd.DataFrame(table_np, columns=table_headers)
+        table_pd['ATOM'] = pd.to_numeric(table_pd['ATOM'], downcast="integer")
+        table_pd['RES'] = pd.to_numeric(table_pd['RES'], downcast="integer")
+        table_pd['At.#'] = pd.to_numeric(table_pd['At.#'], downcast="integer")
+        table_pd['LJ Radius'] = pd.to_numeric(table_pd['LJ Radius'], downcast="float")
+        table_pd['LJ Depth'] = pd.to_numeric(table_pd['LJ Depth'], downcast="float")
+        table_pd['Mass'] = pd.to_numeric(table_pd['Mass'], downcast="float")
+        table_pd['Charge'] = pd.to_numeric(table_pd['Charge'], downcast="float")
+        table_pd['GB Radius'] = pd.to_numeric(table_pd['GB Radius'], downcast="float")
+        table_pd['GB Screen'] = pd.to_numeric(table_pd['GB Screen'], downcast="float")
     return table_pd
 
 def ljtypes_str_to_pd(string):
