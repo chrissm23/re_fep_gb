@@ -72,10 +72,7 @@ def modify_og_GBRadius(modifiers, include_mut):
 
             for atom in atom_numbers:
                 value = residues_details[residues_details['ATOM'] == atom]['GB Radius'].iloc[0]
-                if proportion > 0:
-                    new_value = value + value*proportion
-                else:
-                    new_value = value - value*proportion
+                new_value = value + value*proportion
                 parmed.tools.change(wt_or_mt, 'RADII', f'@{atom}', f'{new_value}').execute()
     
     print("Modifying original GB Radius...")
