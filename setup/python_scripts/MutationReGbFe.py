@@ -52,6 +52,7 @@ class MutationReGbFe:
         self.windows.reverse()
         self.intermediate = control_dict['intermediate']
         self.include_mut = control_dict['include_mut']
+        self.gb_modifiers = control_dict['Rgb_modifiers']
         # Read PDBs into pandas dataframe and delete hydrogens
         self.wt_pdb_path = wt_structure_path
         self.mt_pdb_path = None
