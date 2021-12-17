@@ -97,6 +97,7 @@ class MutationReGbFe:
 
         # Get new mutation positions, initial and final residues for each chain after running leap
         if self.chains_to_mutate_str != 'tripeptide':
+            self.chains_to_mutate_int = [self.chain_to_number[x] for x in self.wt_structure.df['ATOM']['chain_id'].unique()]
             self.leap_first = [0]*len(self.first_residues)
             self.leap_last = [0]*len(self.last_residues)
             for i in range(len(self.first_residues)):
@@ -126,9 +127,9 @@ class MutationReGbFe:
 
     def change_residue_name(self, chain, residue_position, residue_mutant):
         """Changes the residue name in the PDB to the desired mutation"""
-        self.mt_structure.df['ATOM']['residue_name'].loc[
-            (self.mt_structure.df['ATOM']['chain_id'] == chain) & 
-            (self.mt_structure.df['ATOM']['residue_number'] == residue_position)] = residue_mutant
+        self.mt_structure.df['ATOM'].loc[
+            (self.mt_structure.df['ATOM'].chain_id == chain) & 
+            (self.mt_structure.df['ATOM'].residue_number == residue_position), "residue_name"] = residue_mutant
 
     def delete_side_chain(self, chain, residue_position):
         """Deletes side chain of mutated residue for leap to autocomplete"""
@@ -168,6 +169,10 @@ class MutationReGbFe:
                 self.change_residue_name(chain, self.residue_position, self.residue_mutant) # Change residue name
                 self.delete_side_chain(chain, self.residue_position) # Delete side chain
 
+            # Write WT PDB
+            self.wt_pdb_path = 'setup/parms_n_pdbs/pdbs/wt.pdb'
+            self.wt_structure.to_pdb(path=self.wt_pdb_path, records=None, gz=False, append_newline=True)
+
         # If specific chains are given
         else:
             if isinstance(self.residue_position, list) and isinstance(self.residue_mutant, list): # If there are matching lists
@@ -186,6 +191,10 @@ class MutationReGbFe:
                 for chain in self.chains_to_mutate_str:
                     self.change_residue_name(chain, self.residue_position, self.residue_mutant)
                     self.delete_side_chain(chain, self.residue_position)
+
+            # Write WT PDB
+            self.wt_pdb_path = 'setup/parms_n_pdbs/pdbs/wt.pdb'
+            self.wt_structure.to_pdb(path=self.wt_pdb_path, records=None, gz=False, append_newline=True)
         
         self.mt_pdb_path = 'setup/parms_n_pdbs/pdbs/mt.pdb'
         self.mt_structure.to_pdb(path=self.mt_pdb_path, records=None, gz=False, append_newline=True)
