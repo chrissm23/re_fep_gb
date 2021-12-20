@@ -5,7 +5,7 @@
 #SBATCH --job-name=%residue_number%_%aminoacid_mutant%_remd_%wt_or_mt%
 #SBATCH --time=0-23:59:59
 #SBATCH --nodes=4
-#SBATCH --ntasks=32
+#SBATCH --ntasks=%n_replicas%
 #SBATCH --overcommit
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=ALL
