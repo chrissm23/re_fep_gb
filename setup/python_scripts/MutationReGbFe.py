@@ -84,7 +84,7 @@ class MutationReGbFe:
             res_max = self.wt_structure.df['ATOM']['residue_number'].loc[self.wt_structure.df['ATOM']['chain_id'] == chain].max()
             self.last_residues.append(res_max)
         
-        # Chainge from alphabetic chain ID's to numeric ones
+        # Change from alphabetic chain ID's to numeric ones
         if self.chains_to_mutate_str != 'all' and self.chains_to_mutate_str != 'tripeptide':
             try:
                 for x in self.chains_to_mutate_str:
@@ -97,7 +97,8 @@ class MutationReGbFe:
 
         # Get new mutation positions, initial and final residues for each chain after running leap
         if self.chains_to_mutate_str != 'tripeptide':
-            self.chains_to_mutate_int = [self.chain_to_number[x] for x in self.wt_structure.df['ATOM']['chain_id'].unique()]
+            if self.chains_to_mutate_str == 'all':
+                self.chains_to_mutate_int = [self.chain_to_number[x] for x in self.wt_structure.df['ATOM']['chain_id'].unique()]
             self.leap_first = [0]*len(self.first_residues)
             self.leap_last = [0]*len(self.last_residues)
             for i in range(len(self.first_residues)):
