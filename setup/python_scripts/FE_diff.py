@@ -268,56 +268,6 @@ def get_averageE(replicas_pd, replica1, replica2):
 
     return epot2_av - epot1_av
 
-def animated_histogram(exp_deltaEs):
-    """Function to generate animated histogram of distribution of Boltzmann factors"""
-    bar_containers = []
-    y_axis = 0
-    x_axis = [0, 0]
-    fig, ax = plt.subplots()
-
-    def auto_bins(data):
-        a_unsorted = np.array(data)
-        left_cap, right_cap = a_unsorted.min(), a_unsorted.max()
-        a = np.sort(a_unsorted) - left_cap
-        fd = np.lib.histograms._hist_bin_fd(a, range)
-        left_edges = a//fd * fd
-        right_edges = left_edges + fd
-        new_bins = np.unique(np.concatenate((left_edges, right_edges))) + left_cap
-        return np.append(new_bins, right_cap+fd)
-
-    for data in exp_deltaEs:
-        # Get rectangles
-        bins_automatic = auto_bins(data)
-        _, _, bar_container = ax.hist(data, bins=bins_automatic, density=True, fc="green")
-        bar_containers.append(bar_container.patches)
-        if data == exp_deltaEs[0]:
-            x_axis[0] = bar_container.patches[0].xy[0]
-        # Get x and y limits
-        for rect in bar_container.patches:
-            if rect.get_height() > y_axis:
-                y_axis = rect.get_height()
-            if rect.xy[0] < x_axis[0]:
-                x_axis[0] = rect.xy[0]
-            if rect.xy[0]+rect.get_width() > x_axis[1] and rect.get_height() > 0.01*y_axis:
-                x_axis[1] = rect.xy[0]+rect.get_width()
-
-    ax.clear()
-
-    def func(frame_number):
-        ax.clear()
-        bins_automatic = auto_bins(exp_deltaEs[frame_number])
-        _, _, bar_container = ax.hist(exp_deltaEs[frame_number], bins=bins_automatic, density=True, fc="green")
-        ax.set_ylim(top=y_axis)
-        ax.set_xlim(x_axis[0], x_axis[1])
-        ax.set_xlabel(r'$e^{-\beta\Delta U}$')
-        ax.set_ylabel('Probability density')
-        return bar_container
-
-    rcParams['animation.convert_path'] = '/usr/bin/convert'
-    fep_histograms_animation = animation.FuncAnimation(fig, func, frames=len(bar_containers), interval= 5, blit=True, repeat=True)
-    fep_histograms_animation.save('FEP_distribution.gif', writer='imagemagick', fps=2)
-
-
 if __name__ == '__main__':
     FE_dir = './'
     snapshot_windows = [name for name in os.listdir('./RE/WT') if os.path.isdir(os.path.join('./RE/WT', name))]
@@ -383,8 +333,6 @@ if __name__ == '__main__':
         fep_backward_allavg = [np.average(exp_deltaEs_backward[i]) for i in range(len(exp_deltaEs_backward))]
         fep_backward = sum(-np.log(fep_backward_allavg)/beta)
         fep_backward_allstd = [np.std(exp_deltaEs_backward[i]) for i in range(len(exp_deltaEs_backward))]
-
-        animated_histogram(filtered_exp_deltaEs_forward)
 
         # Get averages of DeltaG and print warnings
         bar_avs.append(np.average(bar_energies))
