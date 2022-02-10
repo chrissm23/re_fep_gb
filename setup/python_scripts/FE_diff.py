@@ -331,11 +331,13 @@ if __name__ == '__main__':
         elif counter_bar_errors > 0:
             print(f'BAR Warning: {counter_bar_errors}/{len(snapshot_windows)} explosions\n')
 
+    # Get surface area energy difference
     for wt_or_mt in ['WT', 'MT']:
         E_surf = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
         sasas.append(E_surf)
         print(f'{wt_or_mt} E_surf = {round(E_surf, 2)}\n')
 
+    # Calculate total results
     if len(bar_avs) > 1:
         G_diff_fep_f = fep_avs_f[0] - fep_avs_f[1]
         G_diff_fep_b = fep_avs_b[0] - fep_avs_b[1]
