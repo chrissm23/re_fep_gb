@@ -1,6 +1,8 @@
 import shutil
 import subprocess
 
+from numpy import not_equal
+
 import parmed
 
 import setup.python_scripts.get_data_n_general as get_data_n_general
@@ -43,6 +45,62 @@ def create_og_parms(path_wt_pdb, path_mt_pdb):
     subprocess.call(wt_bash_path)
     subprocess.call(mt_bash_path)
     print("Parameter files created.")
+
+def modify_og_GBRadius(modifiers, include_mut):
+    """Modifies GB radius of atoms with type atom_types from parmed_object through either a multiplier or a set value"""
+    # Leap generated parameter files
+    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
+    wt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/wt_0.rst7'
+    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7'
+    mt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/mt_0.rst7'
+
+    # Import to ParmEd
+    wt_parmed = parmed.amber.AmberParm(wt_parm_path, wt_rst_path)
+    if include_mut:
+        mt_parmed = parmed.amber.AmberParm(mt_parm_path, mt_rst_path)
+
+    def Rgb_modify(mask, proportion):
+        """Change initial GB radius of mask by proportion"""
+        if include_mut:
+            topologies = [wt_parmed, mt_parmed]
+        else:
+            topologies = [wt_parmed]
+        for wt_or_mt in topologies:
+            if mask == 'all':
+                residues_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(wt_or_mt, ':*')))
+            else:
+                residues_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(wt_or_mt, f'{mask}')))
+            atom_numbers = residues_details['ATOM'].tolist() # Get atom numbers of mutated residues
+
+            for atom in atom_numbers:
+                value = residues_details[residues_details['ATOM'] == atom]['GB Radius'].iloc[0]
+                new_value = value + value*proportion
+                parmed.tools.change(wt_or_mt, 'RADII', f'@{atom}', f'{new_value}').execute()
+    
+    print("Modifying original GB Radius...")
+    if not isinstance(modifiers, list):
+        if '+' in modifiers:
+            [mask, proportion] = modifiers.split('+')
+            proportion = float(proportion)
+            Rgb_modify(mask, proportion)
+        elif '-' in modifiers:
+            [mask, proportion] = modifiers.split('-')
+            proportion = -float(proportion)
+            Rgb_modify(mask, proportion)
+    else:
+        for modifier in modifiers:
+            if '+' in modifier:
+                [mask, proportion] = modifier.split('+')
+                proportion = float(proportion)
+                Rgb_modify(mask, proportion)
+            elif '-' in modifier:
+                [mask, proportion] = modifier.split('-')
+                proportion = -float(proportion)
+                Rgb_modify(mask, proportion)
+
+    parmed.tools.outparm(wt_parmed, wt_parm_path).execute()
+    if include_mut:
+        parmed.tools.outparm(mt_parmed, mt_parm_path).execute()
 
 def get_new_LJParms(parmed_object, residue_mask, functions, windows):
     """Creates new LJ atom types and outputs new AmberParm bojects with modified LJ  matrix"""
@@ -134,21 +192,39 @@ def get_new_Parms(parms_list, residue_mask, propty, functional, windows, truncat
         #print(str(parmed.tools.printDetails(parms_list[i], f':{residue_mask}')))
     return parms_list
 
+def change_atom_charge(residue, parm_inter, window, functional, new_charge, atom, extra_charge=0):
+    old_charge = parmed.tools.netCharge(parm_inter, f':{residue}@{atom}').execute()
+    old_charge = round(old_charge, 4)
+    diff_charge = new_charge - old_charge + extra_charge
+    multiplier = get_data_n_general.get_multiplier(window, functional, truncate=True)
+    inter_charge = old_charge + (1 - multiplier)*diff_charge
+    parmed.tools.change(parm_inter, 'Charge', f':{residue}@{atom}', f'{inter_charge}').execute()
+
 def get_CA_Parms(parms_list, residue_position, functional, windows):
     """Changes charge of CA carbon to keep residue charge constant"""
     def compensate_residue(residue, parm_inter, window):
         """Compensate the charge of each mutating residue to GLY"""
         # Charge of GLY hydrogens bound to CA
-        charge_GLY_hydrogens = 0.1396
+        charge_GLY_N = -0.4157
+        charge_GLY_H = 0.2719
         charge_GLY_CA = -0.0252
-        charge_CA = parmed.tools.netCharge(parm_inter, f':{residue}@CA').execute()
-        charge_CA = round(charge_CA, 4)
-        diff_charge_CA = charge_GLY_CA - charge_CA
-        diff_charge = charge_GLY_hydrogens + diff_charge_CA
-        multiplier = get_data_n_general.get_multiplier(window, functional, truncate=True)
-        new_charge_CA = charge_CA + (1 - multiplier)*diff_charge
-        # Change CA charge
-        parmed.tools.change(parm_inter, 'Charge', f':{residue}@CA', f'{new_charge_CA}').execute()
+        charge_GLY_HAs = 0.1396
+        charge_GLY_C = 0.5973
+        charge_GLY_O = -0.5679
+
+        charges = {
+            'N': charge_GLY_N,
+            'H': charge_GLY_H,
+            'CA': charge_GLY_CA,
+            'C': charge_GLY_C,
+            'O': charge_GLY_O
+        }
+
+        for i in charges.keys():
+            if i != 'CA':
+                change_atom_charge(residue, parm_inter, window, functional, charges[i], i)
+            else:
+                change_atom_charge(residue, parm_inter, window, functional, charges[i], i, charge_GLY_HAs)
 
     for i in range(len(parms_list)):
         if not isinstance(residue_position, list):
@@ -159,34 +235,34 @@ def get_CA_Parms(parms_list, residue_position, functional, windows):
     return parms_list
 
 def get_CB_Parms(parms_list, residue_position, functional, windows):
-    """Changes charge of CB carbon to keep residue charge constant"""
+    """Changes charge of CB carbon to keep residue charge constant"""  
     def compensate_residue(residue, parm_inter, window):
         """Compensate the charge of each mutating residue to ALA"""
         # Charge of ALA hydrogens bound to CB
-        charge_ALA_hydrogens = 0.1809
-        charge_ALA_CB = -0.1825
-        charge_CB = parmed.tools.netCharge(parm_inter, f':{residue}@CB').execute()
-        charge_CB = round(charge_CB, 4)
-        diff_charge_CB = charge_ALA_CB - charge_CB
-        diff_charge = charge_ALA_hydrogens + diff_charge_CB
-        multiplier = get_data_n_general.get_multiplier(window, functional, truncate=True)
-        new_charge_CB = charge_CB + (1 - multiplier)*diff_charge
-        # Change CB charge
-        parmed.tools.change(parm_inter, 'Charge', f':{residue}@CB', f'{new_charge_CB}').execute()
-        # Charge of CA to get that of ALA
+        charge_ALA_N = -0.4157
+        charge_ALA_H = 0.2719
         charge_ALA_CA = 0.0337
-        charge_CA = parmed.tools.netCharge(parm_inter, f':{residue}@CA').execute()
-        charge_CA = round(charge_CA, 4)
-        diff_charge_CA = charge_ALA_CA - charge_CA
-        new_charge_CA = charge_CA + (1 - multiplier)*diff_charge_CA
-        parmed.tools.change(parm_inter, 'Charge', f':{residue}@CA', f'{new_charge_CA}').execute()
-        # Charge of HA to get that of ALA
         charge_ALA_HA = 0.0823
-        charge_HA = parmed.tools.netCharge(parm_inter, f':{residue}@HA').execute()
-        charge_HA = round(charge_HA, 4)
-        diff_charge_HA = charge_ALA_HA - charge_HA
-        new_charge_HA = charge_HA + (1 - multiplier)*diff_charge_HA
-        parmed.tools.change(parm_inter, 'Charge', f':{residue}@HA', f'{new_charge_HA}').execute()
+        charge_ALA_CB = -0.1825
+        charge_ALA_HBs = 0.1809
+        charge_ALA_C = 0.5973
+        charge_ALA_O = -0.5679
+        
+        charges = {
+            'N': charge_ALA_N,
+            'H': charge_ALA_H,
+            'CA': charge_ALA_CA,
+            'HA': charge_ALA_HA,
+            'CB': charge_ALA_CB,
+            'C': charge_ALA_C,
+            'O': charge_ALA_O
+        }
+
+        for i in charges.keys():
+            if i != 'CB':
+                change_atom_charge(residue, parm_inter, window, functional, charges[i], i)
+            else:
+                change_atom_charge(residue, parm_inter, window, functional, charges[i], i, charge_ALA_HBs)
 
     for i in range(len(parms_list)):
         if not isinstance(residue_position, list):
