@@ -245,8 +245,9 @@ def get_SASA(path):
         if 'ESURF=' in line:
             esurf_lines.append(float(line.split('=')[1].strip()))
     E_surf = np.average(esurf_lines)
+    sigmaE_surf = np.std(esurf_lines)
 
-    return E_surf
+    return [E_surf, sigmaE_surf]
 
 if __name__ == '__main__':
     FE_dir = './'
@@ -258,6 +259,7 @@ if __name__ == '__main__':
     bar_avs = []
     barsigma_avs = []
     sasas = []
+    sasas_sigma = []
     
     # Get DeltaG for WT and MT
     if os.path.exists('./RE/MT/0/rem.log'):
@@ -333,8 +335,9 @@ if __name__ == '__main__':
 
     # Get surface area energy difference
     for wt_or_mt in ['WT', 'MT']:
-        E_surf = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
+        [E_surf, sigmaE_surf] = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
         sasas.append(E_surf)
+        sasas_sigma.append(sigmaE_surf)
         print(f'{wt_or_mt} E_surf = {round(E_surf, 2)}\n')
 
     # Calculate total results
@@ -349,8 +352,11 @@ if __name__ == '__main__':
         G_diff_bar = bar_avs[0]
         error_bar = barsigma_avs[0]
     sasa_diff = sasas[1] - sasas[0]
+    error_sasa = sasas_sigma[0] + sasas_sigma[1]
 
     print(f'DeltaG: {round(G_diff_bar, 2)}')
-    print(f'Error: {round(error_bar, 2)}')
+    print(f'sigma_G: {round(error_bar, 2)}')
     print(f'DeltaE_surf: {round(sasa_diff, 2)}')
+    print(f'sigmaE_surf: {round(error_sasa, 2)}')
     print(f'DeltaG_total: {round(G_diff_bar + sasa_diff, 2)}')
+    print(f'sigma_total: {round(error_bar + error_sasa, 2)}')
