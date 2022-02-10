@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.core.fromnumeric import repeat
 from scipy.constants import k as k_B
 from scipy.constants import N_A
 import pandas as pd
