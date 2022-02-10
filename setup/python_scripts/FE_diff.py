@@ -4,9 +4,6 @@ from scipy.constants import k as k_B
 from scipy.constants import N_A
 import pandas as pd
 import os
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from matplotlib import rcParams
 
 import pymbar
 
