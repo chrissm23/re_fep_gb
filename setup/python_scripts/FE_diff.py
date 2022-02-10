@@ -248,7 +248,7 @@ def get_SASA(path):
 if __name__ == '__main__':
     FE_dir = './'
     snapshot_windows = [name for name in os.listdir('./RE/WT') if os.path.isdir(os.path.join('./RE/WT', name))]
-    snapshot_windows.sort()
+    snapshot_windows.sort(key=int)
 
     fep_avs_f = []
     fep_avs_b = []
