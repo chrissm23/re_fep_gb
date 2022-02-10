@@ -223,9 +223,12 @@ def DeltaG_BAR(replicas_pd):
     mbars_b = [pymbar.MBAR(u_ns_b[i], n_exchgs_b[i], maximum_iterations=100000).getFreeEnergyDifferences(return_dict=True) for i in range(len(u_ns_b))]
     DeltaGs_a = [x['Delta_f'][0,1] for x in mbars_a]
     DeltaGs_b = [x['Delta_f'][0,1] for x in mbars_b]
+    sigmas_a = [x['dDelta_f'][0,1] for x in mbars_a]
+    sigmas_b = [x['dDelta_f'][0,1] for x in mbars_b]
     DeltaG = sum(DeltaGs_a) + sum(DeltaGs_b)
+    sigma = sum(sigmas_a) + sum(sigmas_b)
 
-    return DeltaG/beta
+    return [DeltaG/beta, sigma]
 
 def get_SASA(path):
     """Read remlog file in path and extract energy"""
@@ -253,6 +256,7 @@ if __name__ == '__main__':
     fep_avs_f = []
     fep_avs_b = []
     bar_avs = []
+    barsigma_avs = []
     sasas = []
     
     # Get DeltaG for WT and MT
@@ -263,6 +267,7 @@ if __name__ == '__main__':
     for wt_or_mt in wt_mt_loop:
         fep_energies = []
         bar_energies = []
+        bar_sigmas = []
 
         counter_fep_errors = 0
         counter_bar_errors = 0
@@ -292,12 +297,13 @@ if __name__ == '__main__':
             
             # Calculate DeltaG using BAR
             try:
-                DeltaG = DeltaG_BAR(replicas_pd)
+                [DeltaG, sigma] = DeltaG_BAR(replicas_pd)
             except:
                 counter_bar_errors += 0
             else:
                 bar_energies.append(DeltaG)
-                print(f'Forward DeltaG = {round(DeltaG, 2)}\n')
+                bar_sigmas.append(sigma)
+                print(f'Forward DeltaG = {round(DeltaG, 2)} pm {sigma}\n')
 
         # Get FEP deltaG over all samples
         fep_forward_allavg = [np.average(exp_deltaEs_forward[i]) for i in range(len(exp_deltaEs_forward))]
@@ -309,6 +315,7 @@ if __name__ == '__main__':
 
         # Get averages of DeltaG and print warnings
         bar_avs.append(np.average(bar_energies))
+        barsigma_avs.append(np.average(bar_sigmas))
         print(f'BAR {wt_or_mt}: Average DeltaG = {round(bar_avs[-1], 2)}\n')
 
         fep_avs_f.append(np.average([fep_energies[i][0] for i in range(len(fep_energies))]))
@@ -333,6 +340,7 @@ if __name__ == '__main__':
         G_diff_fep_f = fep_avs_f[0] - fep_avs_f[1]
         G_diff_fep_b = fep_avs_b[0] - fep_avs_b[1]
         G_diff_bar = bar_avs[0] - bar_avs[1]
+        error_bar = barsigma_avs[0] + barsigma_avs[1]
     else:
         G_diff_fep_f = fep_avs_f[0]
         G_diff_fep_b = fep_avs_b[0]
