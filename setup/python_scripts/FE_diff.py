@@ -245,25 +245,6 @@ def get_SASA(path):
 
     return E_surf
 
-def get_averageE(replicas_pd, replica1, replica2):
-    """Calculate average potential energy between replica1 and replica2"""
-    print(f'Computing potential energy difference between replica {replica1} and replica {replica2}')
-    epot_sum1 = 0
-    epot_sum2 = 0
-    
-    # Add all PotE(x_1)
-    for replica in replicas_pd:
-        replica1_data = replica[replica['Replica'] == replica1]
-        epot_sum1 += replica1_data['PotE(x_1)'].iloc[0]
-        replica2_data = replica[replica['Replica'] == replica2]
-        epot_sum2 += replica2_data['PotE(x_1)'].iloc[0]
-    # Calculate average
-    n_exchgs = len(replicas_pd)
-    epot1_av = epot_sum1/n_exchgs
-    epot2_av = epot_sum2/n_exchgs
-
-    return epot2_av - epot1_av
-
 if __name__ == '__main__':
     FE_dir = './'
     snapshot_windows = [name for name in os.listdir('./RE/WT') if os.path.isdir(os.path.join('./RE/WT', name))]
