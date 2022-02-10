@@ -350,5 +350,6 @@ if __name__ == '__main__':
     sasa_diff = sasas[1] - sasas[0]
 
     print(f'DeltaG: {round(G_diff_bar, 2)}')
+    print(f'Error: {round(error_bar, 2)}')
     print(f'DeltaE_surf: {round(sasa_diff, 2)}')
     print(f'DeltaG_total: {round(G_diff_bar + sasa_diff, 2)}')
