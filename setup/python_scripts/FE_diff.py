@@ -305,7 +305,7 @@ if __name__ == '__main__':
             else:
                 bar_energies.append(DeltaG)
                 bar_sigmas.append(sigma)
-                print(f'Forward DeltaG = {round(DeltaG, 2)} pm {sigma}\n')
+                print(f'Forward DeltaG = {round(DeltaG, 2)} pm {round(sigma, 2)}\n')
 
         # Get FEP deltaG over all samples
         fep_forward_allavg = [np.average(exp_deltaEs_forward[i]) for i in range(len(exp_deltaEs_forward))]
