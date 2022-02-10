@@ -347,6 +347,7 @@ if __name__ == '__main__':
         G_diff_fep_f = fep_avs_f[0]
         G_diff_fep_b = fep_avs_b[0]
         G_diff_bar = bar_avs[0]
+        error_bar = barsigma_avs[0]
     sasa_diff = sasas[1] - sasas[0]
 
     print(f'DeltaG: {round(G_diff_bar, 2)}')
