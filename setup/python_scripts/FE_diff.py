@@ -302,14 +302,10 @@ if __name__ == '__main__':
         # Get FEP deltaG over all samples
         fep_forward_allavg = [np.average(exp_deltaEs_forward[i]) for i in range(len(exp_deltaEs_forward))]
         fep_forward_allstd = [np.std(exp_deltaEs_forward[i]) for i in range(len(exp_deltaEs_forward))]
-        filtered_exp_deltaEs_forward = [list(filter(lambda b_factor: 
-            (b_factor <= fep_forward_allavg[i]+5*fep_forward_allstd[i]) and (b_factor >= fep_forward_allavg[i]-5*fep_forward_allstd[i]), 
-            exp_deltaEs_forward[i])) 
-            for i in range(len(exp_deltaEs_forward))]
         fep_forward = sum(-np.log(fep_forward_allavg)/beta)
         fep_backward_allavg = [np.average(exp_deltaEs_backward[i]) for i in range(len(exp_deltaEs_backward))]
-        fep_backward = sum(-np.log(fep_backward_allavg)/beta)
         fep_backward_allstd = [np.std(exp_deltaEs_backward[i]) for i in range(len(exp_deltaEs_backward))]
+        fep_backward = sum(-np.log(fep_backward_allavg)/beta)
 
         # Get averages of DeltaG and print warnings
         bar_avs.append(np.average(bar_energies))
@@ -323,8 +319,10 @@ if __name__ == '__main__':
         if abs(fep_avs_f[-1]) < abs(fep_avs_b[-1]) - 1 or abs(fep_avs_f[-1]) > abs(fep_avs_b[-1]) + 1:
             print(f'Convergence error\n')
 
-        if counter_fep_errors > 0 or counter_bar_errors > 0:
-            print(f'Warning: {counter_fep_errors}/{len(snapshot_windows)} explosions\n')
+        if counter_fep_errors > 0:
+            print(f'FEP Warning: {counter_fep_errors}/{len(snapshot_windows)} explosions\n')
+        elif counter_bar_errors > 0:
+            print(f'BAR Warning: {counter_bar_errors}/{len(snapshot_windows)} explosions\n')
 
     for wt_or_mt in ['WT', 'MT']:
         E_surf = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
