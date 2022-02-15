@@ -52,7 +52,10 @@ class MutationReGbFe:
         self.windows.reverse()
         self.intermediate = control_dict['intermediate']
         self.include_mut = control_dict['include_mut']
-        self.gb_modifiers = control_dict['Rgb_modifiers']
+        if 'Rgb_modifiers' in control_dict.keys():
+            self.gb_modifiers = control_dict['Rgb_modifiers']
+        else:
+            self.gb_modifiers = None
         # Read PDBs into pandas dataframe and delete hydrogens
         self.wt_pdb_path = wt_structure_path
         self.mt_pdb_path = None
@@ -203,7 +206,8 @@ class MutationReGbFe:
     def create_parms(self):
         """Creates parameter files of WT and mutant"""
         create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path) # Create parameter files from original WT and mutant structures
-        create_parm.modify_og_GBRadius(self.gb_modifiers, self.include_mut) # Modify original GB radius
+        if self.gb_modifiers is not None:
+            create_parm.modify_og_GBRadius(self.gb_modifiers, self.include_mut) # Modify original GB radius
 
         print("Creating intermediate parameter files...")
         # Create intermediate parameter files
