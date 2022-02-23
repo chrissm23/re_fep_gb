@@ -267,6 +267,10 @@ def get_CA_Parms(parms_list, residue_position, functional, windows):
             else:
                 compensate_residue(residue_position, parms_list[i], windows[i], end=None)
         else:
+            no_oxt = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@OXT')).strip().split('\n')[0].split()[-2])
+            no_h1 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H1')).strip().split('\n')[0].split()[-2])
+            no_h2 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H2')).strip().split('\n')[0].split()[-2])
+            no_h3 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H3')).strip().split('\n')[0].split()[-2])
             for residue in residue_position:
                 if no_oxt == 1:
                     compensate_residue(residue, parms_list[i], windows[i], end='C_terminus')
@@ -351,6 +355,10 @@ def get_CB_Parms(parms_list, residue_position, functional, windows):
             else:
                 compensate_residue(residue_position, parms_list[i], windows[i], end=None)
         else:
+            no_oxt = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@OXT')).strip().split('\n')[0].split()[-2])
+            no_h1 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H1')).strip().split('\n')[0].split()[-2])
+            no_h2 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H2')).strip().split('\n')[0].split()[-2])
+            no_h3 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H3')).strip().split('\n')[0].split()[-2])
             for residue in residue_position:
                 if no_oxt == 1:
                     compensate_residue(residue, parms_list[i], windows[i], end='C_terminus')
