@@ -202,15 +202,33 @@ def change_atom_charge(residue, parm_inter, window, functional, new_charge, atom
 
 def get_CA_Parms(parms_list, residue_position, functional, windows):
     """Changes charge of CA carbon to keep residue charge constant"""
-    def compensate_residue(residue, parm_inter, window):
+    def compensate_residue(residue, parm_inter, window, end=None):
         """Compensate the charge of each mutating residue to GLY"""
         # Charge of GLY hydrogens bound to CA
-        charge_GLY_N = -0.4157
-        charge_GLY_H = 0.2719
-        charge_GLY_CA = -0.0252
-        charge_GLY_HAs = 0.1396
-        charge_GLY_C = 0.5973
-        charge_GLY_O = -0.5679
+        if end == None:
+            charge_GLY_N = -0.4157
+            charge_GLY_H = 0.2719
+            charge_GLY_CA = -0.0252
+            charge_GLY_HAs = 0.1396
+            charge_GLY_C = 0.5973
+            charge_GLY_O = -0.5679
+        elif end == 'C_terminus':
+            charge_GLY_N = -0.3821
+            charge_GLY_H = 0.2681
+            charge_GLY_CA = -0.2493
+            charge_GLY_HAs = 0.2112
+            charge_GLY_C = 0.7231
+            charge_GLY_O = -0.7855
+            charge_GLY_OXT = -0.7855
+        elif end == 'N_terminus':
+            charge_GLY_N = 0.2943
+            charge_GLY_H1 = 0.1642
+            charge_GLY_H2 = 0.1642
+            charge_GLY_H3 = 0.1642
+            charge_GLY_CA = -0.0100
+            charge_GLY_HAs = 0.1790
+            charge_GLY_C = 0.6163
+            charge_GLY_O = -0.5722
 
         charges = {
             'N': charge_GLY_N,
@@ -220,6 +238,16 @@ def get_CA_Parms(parms_list, residue_position, functional, windows):
             'O': charge_GLY_O
         }
 
+        if end == None:
+            charges['H'] = charge_GLY_H
+        elif end == 'C_terminus':
+            charges['H'] = charge_GLY_H
+            charges['OXT'] = charge_GLY_OXT
+        elif end == 'N_terminus':
+            charges['H1'] = charge_GLY_H1
+            charges['H2'] = charge_GLY_H2
+            charges['H3'] = charge_GLY_H3
+
         for i in charges.keys():
             if i != 'CA':
                 change_atom_charge(residue, parm_inter, window, functional, charges[i], i)
@@ -228,25 +256,61 @@ def get_CA_Parms(parms_list, residue_position, functional, windows):
 
     for i in range(len(parms_list)):
         if not isinstance(residue_position, list):
-            compensate_residue(residue_position, parms_list[i], windows[i])
+            no_oxt = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@OXT')).strip().split('\n')[0].split()[-2])
+            no_h1 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H1')).strip().split('\n')[0].split()[-2])
+            no_h2 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H2')).strip().split('\n')[0].split()[-2])
+            no_h3 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H3')).strip().split('\n')[0].split()[-2])
+            if no_oxt == 1:
+                compensate_residue(residue_position, parms_list[i], windows[i], end='C_terminus')
+            elif no_h1 == 1 and no_h2 == 1 and no_h3 == 1:
+                compensate_residue(residue_position, parms_list[i], windows[i], end='N_terminus')
+            else:
+                compensate_residue(residue_position, parms_list[i], windows[i], end=None)
         else:
             for residue in residue_position:
-                compensate_residue(residue, parms_list[i], windows[i])
+                if no_oxt == 1:
+                    compensate_residue(residue, parms_list[i], windows[i], end='C_terminus')
+                elif no_h1 == 1 and no_h2 == 1 and no_h3 == 1:
+                    compensate_residue(residue, parms_list[i], windows[i], end='N_terminus')
+                else:
+                    compensate_residue(residue, parms_list[i], windows[i], end=None)
     return parms_list
 
 def get_CB_Parms(parms_list, residue_position, functional, windows):
     """Changes charge of CB carbon to keep residue charge constant"""  
-    def compensate_residue(residue, parm_inter, window):
+    def compensate_residue(residue, parm_inter, window, end=None):
         """Compensate the charge of each mutating residue to ALA"""
         # Charge of ALA hydrogens bound to CB
-        charge_ALA_N = -0.4157
-        charge_ALA_H = 0.2719
-        charge_ALA_CA = 0.0337
-        charge_ALA_HA = 0.0823
-        charge_ALA_CB = -0.1825
-        charge_ALA_HBs = 0.1809
-        charge_ALA_C = 0.5973
-        charge_ALA_O = -0.5679
+        if end == None:
+            charge_ALA_N = -0.4157
+            charge_ALA_H = 0.2719
+            charge_ALA_CA = 0.0337
+            charge_ALA_HA = 0.0823
+            charge_ALA_CB = -0.1825
+            charge_ALA_HBs = 0.1809
+            charge_ALA_C = 0.5973
+            charge_ALA_O = -0.5679
+        elif end == 'C_terminus':
+            charge_ALA_N = -0.3821
+            charge_ALA_H = 0.2681
+            charge_ALA_CA = -0.1747
+            charge_ALA_HA = 0.1067
+            charge_ALA_CB = -0.2093
+            charge_ALA_HBs = 0.2292
+            charge_ALA_C = 0.7731
+            charge_ALA_O = -0.8055
+            charge_ALA_OXT = -0.8055
+        elif end == 'N_terminus':
+            charge_ALA_N = 0.1414
+            charge_ALA_H1 = 0.1997
+            charge_ALA_H2 = 0.1997
+            charge_ALA_H3 = 0.1997
+            charge_ALA_CA = 0.0962
+            charge_ALA_HA = 0.0889
+            charge_ALA_CB = -0.0597
+            charge_ALA_HBs = 0.0900
+            charge_ALA_C = 0.6163
+            charge_ALA_O = -0.5722
         
         charges = {
             'N': charge_ALA_N,
@@ -258,6 +322,16 @@ def get_CB_Parms(parms_list, residue_position, functional, windows):
             'O': charge_ALA_O
         }
 
+        if end == None:
+            charges['H'] = charge_ALA_H
+        elif end == 'C_terminus':
+            charges['H'] = charge_ALA_H
+            charges['OXT'] = charge_ALA_OXT
+        elif end == 'N_terminus':
+            charges['H1'] = charge_ALA_H1
+            charges['H2'] = charge_ALA_H2
+            charges['H3'] = charge_ALA_H3
+
         for i in charges.keys():
             if i != 'CB':
                 change_atom_charge(residue, parm_inter, window, functional, charges[i], i)
@@ -266,10 +340,24 @@ def get_CB_Parms(parms_list, residue_position, functional, windows):
 
     for i in range(len(parms_list)):
         if not isinstance(residue_position, list):
-            compensate_residue(residue_position, parms_list[i], windows[i])
+            no_oxt = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@OXT')).strip().split('\n')[0].split()[-2])
+            no_h1 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H1')).strip().split('\n')[0].split()[-2])
+            no_h2 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H2')).strip().split('\n')[0].split()[-2])
+            no_h3 = int(str(parmed.tools.printDetails(parms_list[i], f':{residue_position}@H3')).strip().split('\n')[0].split()[-2])
+            if no_oxt == 1:
+                compensate_residue(residue_position, parms_list[i], windows[i], end='C_terminus')
+            elif no_h1 == 1 and no_h2 == 1 and no_h3 == 1:
+                compensate_residue(residue_position, parms_list[i], windows[i], end='N_terminus')
+            else:
+                compensate_residue(residue_position, parms_list[i], windows[i], end=None)
         else:
             for residue in residue_position:
-                compensate_residue(residue, parms_list[i], windows[i])
+                if no_oxt == 1:
+                    compensate_residue(residue, parms_list[i], windows[i], end='C_terminus')
+                elif no_h1 == 1 and no_h2 == 1 and no_h3 == 1:
+                    compensate_residue(residue, parms_list[i], windows[i], end='N_terminus')
+                else:
+                    compensate_residue(residue, parms_list[i], windows[i], end=None)
     return parms_list
 
 def create_intermediate_parms(functions, windows, residue_position, intermediate, include_mut):
@@ -293,9 +381,9 @@ def create_intermediate_parms(functions, windows, residue_position, intermediate
         residue_mask = ','.join(residue_mask_list)
     # Select mask of intermediate
     if intermediate == 'GLY':
-        residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H'
+        residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H,H1,H2,H3,OXT'
     elif intermediate == 'ALA':
-        residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H,HA,CB'
+        residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H,HA,CB,H1,H2,H3,OXT'
 
     # Create parms with modified LJ matrix according to windows and functions
     wt_parms_LJ = get_new_LJParms(wt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
