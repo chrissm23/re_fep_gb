@@ -1,8 +1,6 @@
 import shutil
 import subprocess
 
-from numpy import not_equal
-
 import parmed
 
 import setup.python_scripts.get_data_n_general as get_data_n_general
