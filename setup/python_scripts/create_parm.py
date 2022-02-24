@@ -230,7 +230,6 @@ def get_CA_Parms(parms_list, residue_position, functional, windows):
 
         charges = {
             'N': charge_GLY_N,
-            'H': charge_GLY_H,
             'CA': charge_GLY_CA,
             'C': charge_GLY_C,
             'O': charge_GLY_O
@@ -316,7 +315,6 @@ def get_CB_Parms(parms_list, residue_position, functional, windows):
         
         charges = {
             'N': charge_ALA_N,
-            'H': charge_ALA_H,
             'CA': charge_ALA_CA,
             'HA': charge_ALA_HA,
             'CB': charge_ALA_CB,
