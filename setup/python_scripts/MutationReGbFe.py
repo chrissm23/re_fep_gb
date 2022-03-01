@@ -375,7 +375,7 @@ class MutationReGbFe:
         get_data_n_general.make_executable('FE/SASA/surface_area.sh')
         # Copy python scripts to calculate free energy differences
         shutil.copyfile('setup/python_scripts/FE_diff.py', 'FE/FE_diff.py')
-        shutil.copyfile('setup/python_scripts/fe_recalculate.py', 'FE/fe_recalculate.py')
+        shutil.copyfile('setup/python_scripts/fe_recalculate.py', './fe_recalculate.py')
         
         self.create_RE_n_equil_files()
 
