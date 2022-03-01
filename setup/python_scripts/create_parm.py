@@ -366,7 +366,7 @@ def get_CB_Parms(parms_list, residue_position, functional, windows):
                     compensate_residue(residue, parms_list[i], windows[i], end=None)
     return parms_list
 
-def create_intermediate_parms(functions, windows, residue_position, intermediate, include_mut):
+def create_intermediate_parms(functions, windows, residue_position, intermediate, include_mut, recalculation=False):
     """Creates intermediate parameter files using scaling of function on residues given by residue_position"""
     # Leap generated parameter files
     wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
@@ -419,7 +419,13 @@ def create_intermediate_parms(functions, windows, residue_position, intermediate
     for i in range(len(wt_parms_CA)):
         #print(parmed.tools.printDetails(wt_parms_CA[i], f':{residue_mask}&!@C,O,N,H'))
         parmed.tools.HMassRepartition(wt_parms_CA[i]).execute()
-        parmed.tools.outparm(wt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
+        if recalculation:
+            parmed.tools.outparm(wt_parms_CA[i], f'setup/recalculate/wt_{i+1}.parm7').execute()
+        else:
+            parmed.tools.outparm(wt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
         if include_mut:
             parmed.tools.HMassRepartition(mt_parms_CA[i]).execute()
-            parmed.tools.outparm(mt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()
+            if recalculation:
+                parmed.tools.outparm(mt_parms_CA[i], f'setup/recalculate/mt_{i+1}.parm7').execute()
+            else:
+                parmed.tools.outparm(mt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()
