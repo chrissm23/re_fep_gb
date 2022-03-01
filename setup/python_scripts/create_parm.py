@@ -96,8 +96,8 @@ def modify_og_GBRadius(modifiers, include_mut):
                 proportion = -float(proportion)
                 Rgb_modify(mask, proportion)
 
-    wt_parm_path_new = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
-    mt_parm_path_new = 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7'
+    wt_parm_path_new = 'setup/recalculate/wt_0.parm7'
+    mt_parm_path_new = 'setup/recalculate/mt_0.parm7'
     parmed.tools.outparm(wt_parmed, wt_parm_path_new).execute()
     if include_mut:
         parmed.tools.outparm(mt_parmed, mt_parm_path_new).execute()
