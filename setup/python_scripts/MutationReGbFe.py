@@ -52,7 +52,10 @@ class MutationReGbFe:
         self.windows.reverse()
         self.intermediate = control_dict['intermediate']
         self.include_mut = control_dict['include_mut']
-        self.gb_modifiers = control_dict['Rgb_modifiers']
+        if 'Rgb_modifiers' in control_dict.keys():
+            self.gb_modifiers = control_dict['Rgb_modifiers']
+        else:
+            self.gb_modifiers = None
         # Read PDBs into pandas dataframe and delete hydrogens
         self.wt_pdb_path = wt_structure_path
         self.mt_pdb_path = None
@@ -65,6 +68,7 @@ class MutationReGbFe:
         self.number_chains = None
         self.first_residues = None
         self.last_residues = None
+        self.missing_residues = None
         self.leap_first = None
         self.leap_last = None
         self.leap_residue_position = None
@@ -77,12 +81,16 @@ class MutationReGbFe:
         self.number_chains = self.wt_structure.df['ATOM']['chain_id'].nunique()
         self.first_residues = []
         self.last_residues = []
-        # Get fist and last residue number of each chain
+        self.missing_residues = []
+        # Get fist and last residue number of each chain and also missing residues
         for chain in self.chains_pdb:
             res_min = self.wt_structure.df['ATOM']['residue_number'].loc[self.wt_structure.df['ATOM']['chain_id'] == chain].min()
             self.first_residues.append(res_min)
             res_max = self.wt_structure.df['ATOM']['residue_number'].loc[self.wt_structure.df['ATOM']['chain_id'] == chain].max()
             self.last_residues.append(res_max)
+            full_chain_set = set(range(res_min, res_max))
+            chain_residues = self.wt_structure.df['ATOM']['residue_number'].loc[self.wt_structure.df['ATOM']['chain_id'] == chain].unique().tolist()
+            self.missing_residues.append(full_chain_set - set(chain_residues))
         
         # Change from alphabetic chain ID's to numeric ones
         if self.chains_to_mutate_str != 'all' and self.chains_to_mutate_str != 'tripeptide':
@@ -104,16 +112,23 @@ class MutationReGbFe:
             for i in range(len(self.first_residues)):
                 if i == 0:
                     self.leap_first[i] = 1
-                    self.leap_last[i] = self.last_residues[i] - (self.first_residues[i] - 1)
+                    self.leap_last[i] = self.last_residues[i] - (self.first_residues[i] - 1) - len(self.missing_residues[i])
                 else:
                     self.leap_first[i] = self.leap_last[i-1] + 1
-                    self.leap_last[i] = self.last_residues[i] - self.first_residues[i] + self.leap_first[i]
+                    self.leap_last[i] = self.last_residues[i] - self.first_residues[i] + self.leap_first[i] - len(self.missing_residues[i])
             if not isinstance(self.residue_position, list):
-                self.leap_residue_position = [self.residue_position - self.first_residues[i] + self.leap_first[i] for i in range(len(self.leap_first))
-                if i in self.chains_to_mutate_int]
+                for i in self.chains_to_mutate_int:
+                    if self.residue_position in self.missing_residues[i]:
+                        raise Exception(f"No residue {self.residue_position} "
+                        f"found in chain {list(self.chain_to_number.keys())[list(self.chain_to_number.values()).index(i)]} to mutate.")
+                self.leap_residue_position = [self.residue_position - self.first_residues[i] + self.leap_first[i] - 
+                    sum(x < self.residue_position for x in self.missing_residues[i]) for i in range(len(self.leap_first))
+                    if i in self.chains_to_mutate_int]
             else:
                 self.leap_residue_position = [self.residue_position[i] - self.first_residues[self.chains_to_mutate_int[i]] + 
-                    self.leap_first[self.chains_to_mutate_int[i]] for i in range(len(self.residue_position))]
+                    self.leap_first[self.chains_to_mutate_int[i]] - 
+                    sum(x < self.residue_position[i] for x in self.missing_residues[self.chains_to_mutate_int[i]]) 
+                    for i in range(len(self.residue_position))]
         else:
             self.leap_first = 1
             if self.residue_position == self.last_residues[0]:
@@ -203,7 +218,8 @@ class MutationReGbFe:
     def create_parms(self):
         """Creates parameter files of WT and mutant"""
         create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path) # Create parameter files from original WT and mutant structures
-        create_parm.modify_og_GBRadius(self.gb_modifiers, self.include_mut) # Modify original GB radius
+        if self.gb_modifiers is not None:
+            create_parm.modify_og_GBRadius(self.gb_modifiers, self.include_mut) # Modify original GB radius
 
         print("Creating intermediate parameter files...")
         # Create intermediate parameter files

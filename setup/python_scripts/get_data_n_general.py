@@ -194,7 +194,7 @@ def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
     a1 = 1
     a2 = 1
     if truncate == True:
-        x_0 = 0.5
+        x_0 = 0.3
 
         a1 = 1/(x_0*x_0 - 2*x_0 + 1)
         b1 = -2*a1*x_0
@@ -216,15 +216,15 @@ def get_multiplier(window, functional, truncate=False, ele_or_GB=None):
     else:
         if functional == 'constant':
             multiplier = 1
-        if functional == 'linear':
+        elif functional == 'linear':
             multiplier = y_1/(x_1-x_0)*(window - x_0)
-        if functional == 'quadratic':
+        elif functional == 'quadratic':
             multiplier = window*(a1*window + b1) + c1
-        if functional == 'quartic':
+        elif functional == 'quartic':
             multiplier = a2*np.power(window,4) + b2*window + c2
-        if functional == 'sqrt':
+        elif functional == 'sqrt':
             multiplier = np.sqrt((window - x_0)/(1 - x_0))
-        if functional == 'root6':
+        elif functional == 'root6':
             if truncate == True:
                 raise Exception('I have not yet implemented the truncate function with the 6th root scaling.')
             else:

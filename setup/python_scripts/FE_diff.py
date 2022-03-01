@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.core.fromnumeric import repeat
 from scipy.constants import k as k_B
 from scipy.constants import N_A
 import pandas as pd
@@ -224,9 +223,12 @@ def DeltaG_BAR(replicas_pd):
     mbars_b = [pymbar.MBAR(u_ns_b[i], n_exchgs_b[i], maximum_iterations=100000).getFreeEnergyDifferences(return_dict=True) for i in range(len(u_ns_b))]
     DeltaGs_a = [x['Delta_f'][0,1] for x in mbars_a]
     DeltaGs_b = [x['Delta_f'][0,1] for x in mbars_b]
+    sigmas_a = [x['dDelta_f'][0,1] for x in mbars_a]
+    sigmas_b = [x['dDelta_f'][0,1] for x in mbars_b]
     DeltaG = sum(DeltaGs_a) + sum(DeltaGs_b)
+    sigma = sum(sigmas_a) + sum(sigmas_b)
 
-    return DeltaG/beta
+    return [DeltaG/beta, sigma]
 
 def get_SASA(path):
     """Read remlog file in path and extract energy"""
@@ -243,37 +245,21 @@ def get_SASA(path):
         if 'ESURF=' in line:
             esurf_lines.append(float(line.split('=')[1].strip()))
     E_surf = np.average(esurf_lines)
+    sigmaE_surf = np.std(esurf_lines)
 
-    return E_surf
-
-def get_averageE(replicas_pd, replica1, replica2):
-    """Calculate average potential energy between replica1 and replica2"""
-    print(f'Computing potential energy difference between replica {replica1} and replica {replica2}')
-    epot_sum1 = 0
-    epot_sum2 = 0
-    
-    # Add all PotE(x_1)
-    for replica in replicas_pd:
-        replica1_data = replica[replica['Replica'] == replica1]
-        epot_sum1 += replica1_data['PotE(x_1)'].iloc[0]
-        replica2_data = replica[replica['Replica'] == replica2]
-        epot_sum2 += replica2_data['PotE(x_1)'].iloc[0]
-    # Calculate average
-    n_exchgs = len(replicas_pd)
-    epot1_av = epot_sum1/n_exchgs
-    epot2_av = epot_sum2/n_exchgs
-
-    return epot2_av - epot1_av
+    return [E_surf, sigmaE_surf]
 
 if __name__ == '__main__':
     FE_dir = './'
     snapshot_windows = [name for name in os.listdir('./RE/WT') if os.path.isdir(os.path.join('./RE/WT', name))]
-    snapshot_windows.sort()
+    snapshot_windows.sort(key=int)
 
     fep_avs_f = []
     fep_avs_b = []
     bar_avs = []
+    barsigma_avs = []
     sasas = []
+    sasas_sigma = []
     
     # Get DeltaG for WT and MT
     if os.path.exists('./RE/MT/0/rem.log'):
@@ -283,6 +269,7 @@ if __name__ == '__main__':
     for wt_or_mt in wt_mt_loop:
         fep_energies = []
         bar_energies = []
+        bar_sigmas = []
 
         counter_fep_errors = 0
         counter_bar_errors = 0
@@ -312,27 +299,25 @@ if __name__ == '__main__':
             
             # Calculate DeltaG using BAR
             try:
-                DeltaG = DeltaG_BAR(replicas_pd)
+                [DeltaG, sigma] = DeltaG_BAR(replicas_pd)
             except:
                 counter_bar_errors += 0
             else:
                 bar_energies.append(DeltaG)
-                print(f'Forward DeltaG = {round(DeltaG, 2)}\n')
+                bar_sigmas.append(sigma)
+                print(f'Forward DeltaG = {round(DeltaG, 2)} pm {round(sigma, 2)}\n')
 
         # Get FEP deltaG over all samples
         fep_forward_allavg = [np.average(exp_deltaEs_forward[i]) for i in range(len(exp_deltaEs_forward))]
         fep_forward_allstd = [np.std(exp_deltaEs_forward[i]) for i in range(len(exp_deltaEs_forward))]
-        filtered_exp_deltaEs_forward = [list(filter(lambda b_factor: 
-            (b_factor <= fep_forward_allavg[i]+5*fep_forward_allstd[i]) and (b_factor >= fep_forward_allavg[i]-5*fep_forward_allstd[i]), 
-            exp_deltaEs_forward[i])) 
-            for i in range(len(exp_deltaEs_forward))]
         fep_forward = sum(-np.log(fep_forward_allavg)/beta)
         fep_backward_allavg = [np.average(exp_deltaEs_backward[i]) for i in range(len(exp_deltaEs_backward))]
-        fep_backward = sum(-np.log(fep_backward_allavg)/beta)
         fep_backward_allstd = [np.std(exp_deltaEs_backward[i]) for i in range(len(exp_deltaEs_backward))]
+        fep_backward = sum(-np.log(fep_backward_allavg)/beta)
 
         # Get averages of DeltaG and print warnings
         bar_avs.append(np.average(bar_energies))
+        barsigma_avs.append(np.average(bar_sigmas))
         print(f'BAR {wt_or_mt}: Average DeltaG = {round(bar_avs[-1], 2)}\n')
 
         fep_avs_f.append(np.average([fep_energies[i][0] for i in range(len(fep_energies))]))
@@ -343,24 +328,35 @@ if __name__ == '__main__':
         if abs(fep_avs_f[-1]) < abs(fep_avs_b[-1]) - 1 or abs(fep_avs_f[-1]) > abs(fep_avs_b[-1]) + 1:
             print(f'Convergence error\n')
 
-        if counter_fep_errors > 0 or counter_bar_errors > 0:
-            print(f'Warning: {counter_fep_errors}/{len(snapshot_windows)} explosions\n')
+        if counter_fep_errors > 0:
+            print(f'FEP Warning: {counter_fep_errors}/{len(snapshot_windows)} explosions\n')
+        elif counter_bar_errors > 0:
+            print(f'BAR Warning: {counter_bar_errors}/{len(snapshot_windows)} explosions\n')
 
+    # Get surface area energy difference
     for wt_or_mt in ['WT', 'MT']:
-        E_surf = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
+        [E_surf, sigmaE_surf] = get_SASA(FE_dir + f'/SASA/{wt_or_mt}/sasa.out')
         sasas.append(E_surf)
+        sasas_sigma.append(sigmaE_surf)
         print(f'{wt_or_mt} E_surf = {round(E_surf, 2)}\n')
 
+    # Calculate total results
     if len(bar_avs) > 1:
         G_diff_fep_f = fep_avs_f[0] - fep_avs_f[1]
         G_diff_fep_b = fep_avs_b[0] - fep_avs_b[1]
         G_diff_bar = bar_avs[0] - bar_avs[1]
+        error_bar = barsigma_avs[0] + barsigma_avs[1]
     else:
         G_diff_fep_f = fep_avs_f[0]
         G_diff_fep_b = fep_avs_b[0]
         G_diff_bar = bar_avs[0]
+        error_bar = barsigma_avs[0]
     sasa_diff = sasas[1] - sasas[0]
+    error_sasa = sasas_sigma[0] + sasas_sigma[1]
 
     print(f'DeltaG: {round(G_diff_bar, 2)}')
+    print(f'sigma_G: {round(error_bar, 2)}')
     print(f'DeltaE_surf: {round(sasa_diff, 2)}')
+    print(f'sigmaE_surf: {round(error_sasa, 2)}')
     print(f'DeltaG_total: {round(G_diff_bar + sasa_diff, 2)}')
+    print(f'sigma_total: {round(error_bar + error_sasa, 2)}')
