@@ -13,9 +13,9 @@ def create_og_parms(path_wt_pdb, path_mt_pdb):
     tmpl_path = 'setup/tmpls/leap_tmpls/gen_parm_pdb.tmpl'
 
     # Output paths
-    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
+    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0_og.parm7'
     wt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/wt_0.rst7'
-    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7'
+    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0_og.parm7'
     mt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/mt_0.rst7'
 
     # Dictionaries of fields to replace in template
@@ -47,9 +47,9 @@ def create_og_parms(path_wt_pdb, path_mt_pdb):
 def modify_og_GBRadius(modifiers, include_mut):
     """Modifies GB radius of atoms with type atom_types from parmed_object through either a multiplier or a set value"""
     # Leap generated parameter files
-    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
+    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0_og.parm7'
     wt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/wt_0.rst7'
-    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7'
+    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0_og.parm7'
     mt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/mt_0.rst7'
 
     # Import to ParmEd
@@ -96,9 +96,11 @@ def modify_og_GBRadius(modifiers, include_mut):
                 proportion = -float(proportion)
                 Rgb_modify(mask, proportion)
 
-    parmed.tools.outparm(wt_parmed, wt_parm_path).execute()
+    wt_parm_path_new = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
+    mt_parm_path_new = 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7'
+    parmed.tools.outparm(wt_parmed, wt_parm_path_new).execute()
     if include_mut:
-        parmed.tools.outparm(mt_parmed, mt_parm_path).execute()
+        parmed.tools.outparm(mt_parmed, mt_parm_path_new).execute()
 
 def get_new_LJParms(parmed_object, residue_mask, functions, windows):
     """Creates new LJ atom types and outputs new AmberParm bojects with modified LJ  matrix"""
