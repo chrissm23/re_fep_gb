@@ -103,7 +103,7 @@ def modify_og_GBRadius(modifiers, include_mut):
         parmed.tools.outparm(mt_parmed, mt_parm_path_new).execute()
 
 def get_new_LJParms(parmed_object, residue_mask, functions, windows):
-    """Creates new LJ atom types and outputs new AmberParm bojects with modified LJ  matrix"""
+    """Creates new LJ atom types and outputs new AmberParm bojects with modified LJ matrix"""
     residue_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(parmed_object, f':{residue_mask}')))
     atom_numbers = residue_details['ATOM'].tolist() # Get atom numbers of mutated residues
 
