@@ -233,7 +233,7 @@ class MutationReGbFe:
 
     def create_RE_n_equil_files(self):
         """Creates necessary files for hamiltonian replica exchange using the intermediate parameter files"""
-        # Get names of parameter files and order them in decreasing order for WT and concatenate increasing order of MT
+        # Get names of parameter files and order them in decreasing order
         def sortParmPaths_numerically(parm_path):
             return int(parm_path[3:-6])
         
