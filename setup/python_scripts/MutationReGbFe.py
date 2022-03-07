@@ -238,8 +238,8 @@ class MutationReGbFe:
             return int(parm_path[3:-6])
         
         parm_files = [x for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows') if os.path.isfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}')]
-        parm_files_wt = [x for x in parm_files if x[:2]=='wt']
-        parm_files_mt = [x for x in parm_files if x[:2]=='mt']
+        parm_files_wt = [x for x in parm_files if x[:2]=='wt' and x != 'wt_0_og.parm7']
+        parm_files_mt = [x for x in parm_files if x[:2]=='mt' and x != 'mt_0_og.parm7']
         parm_files_wt.sort(key=sortParmPaths_numerically)
         parm_files_mt.sort(key=sortParmPaths_numerically)
         parm_files_wt_str = '\n'.join(parm_files_wt)

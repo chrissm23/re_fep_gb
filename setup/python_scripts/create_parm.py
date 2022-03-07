@@ -408,15 +408,15 @@ def create_intermediate_parms(functions, windows, residue_position, intermediate
             return int(parm_path[3:-6])
         
         parm_files = [x for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows') if os.path.isfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}')]
-        parm_files_wt = [x for x in parm_files if x[:2]=='wt']
+        parm_files_wt = [x for x in parm_files if x[:2]=='wt' if x != "wt_0_og.parm7"]
         parm_files_wt.sort(key=sortParmPaths_numerically)
         if include_mut:
-            parm_files_mt = [x for x in parm_files if x[:2]=='mt']
+            parm_files_mt = [x for x in parm_files if x[:2]=='mt' if x != "mt_0_og.parm7"]
             parm_files_mt.sort(key=sortParmPaths_numerically)
 
-        wt_parms_ele = [parmed.amber.AmberParm(x) for x in parm_files_wt]
+        wt_parms_ele = [parmed.amber.AmberParm(f'setup/parms_n_pdbs/parms/parms_windows/{x}') for x in parm_files_wt]
         if include_mut:
-            mt_parms_ele = [parmed.amber.AmberParm(x) for x in parm_files_mt]
+            mt_parms_ele = [parmed.amber.AmberParm(f'setup/parms_n_pdbs/parms/parms_windows/{x}') for x in parm_files_mt]
 
     # Change GB Radius of mutating residues according to windws and functions
     wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask_nobackbone, 'GB Radius', functions[0], windows[1:], truncate=False)
