@@ -65,7 +65,7 @@ def print_remlog(remlog_np, snapshot_dir):
                     n_exchanges = float(element.split('=')[1].strip())
     shutil.copyfile('setup/tmpls/free_energy_tmpls/remlog_recalculated.tmpl', f'{snapshot_dir}/remlog_recalculated.out')
     replace_dict = {
-        '%n_exchanges%': n_exchanges
+        '%n_exchanges%': str(n_exchanges)
     }
     get_data_n_general.replace_in_file(f'{snapshot_dir}/remlog_recalculated.out', replace_dict)
     # Create pandas dataframes to print
@@ -204,7 +204,7 @@ if __name__ == '__main__':
             # Import trajectories with parameters shifted to the right
             trajs_odd_right = [pt.iterload(traj_paths[i], parm_paths[i-1]) for i in range(1,len(traj_paths))]
             trajs_odd_right.append(pt.iterload(traj_paths[0], parm_paths[-1]))
-            print("Recalculating E_1(x_2) for even changes (1/2)...")
+            print("Recalculating E_1(x_2) for odd changes (1/2)...")
             e1_x2_odd1 = [pt.esander(x[1::2], igb=5) for x in trajs_odd_right]
             e1_x2_odd1_total = [e1_x1_restraints[i+1][1::2] + e1_x2_odd1[i]['vdw'] + e1_x2_odd1[i]['elec'] + e1_x2_odd1[i]['gb'] + 
                 e1_x2_odd1[i]['bond'] + e1_x2_odd1[i]['angle'] + e1_x2_odd1[i]['dihedral'] + e1_x2_odd1[i]['vdw_14'] + e1_x2_odd1[i]['elec_14'] 
@@ -216,6 +216,7 @@ if __name__ == '__main__':
             print("Recalculation finished...")
             # Import trajectories with parameters shifted to the left
             trajs_odd_left = [pt.iterload(traj_paths[i-1], parm_paths[i]) for i in range(len(traj_paths))]
+            print("Recalculating E_1(x_2) for odd changes (2/2)...")
             e1_x2_odd2 = [pt.esander(x[1::2], igb=5) for x in trajs_odd_left]
             e1_x2_odd2_total = [e1_x1_restraints[i-1][1::2] + e1_x2_odd2[i]['vdw'] + e1_x2_odd2[i]['elec'] + e1_x2_odd2[i]['gb'] + 
                 e1_x2_odd2[i]['bond'] + e1_x2_odd2[i]['angle'] + e1_x2_odd2[i]['dihedral'] + e1_x2_odd2[i]['vdw_14'] + e1_x2_odd2[i]['elec_14'] 
