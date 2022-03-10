@@ -220,6 +220,11 @@ class MutationReGbFe:
         create_parm.create_og_parms(self.wt_pdb_path, self.mt_pdb_path) # Create parameter files from original WT and mutant structures
         if self.gb_modifiers is not None:
             create_parm.modify_og_GBRadius(self.gb_modifiers, self.include_mut) # Modify original GB radius
+            shutil.copyfile('setup/recalculate/wt_0.parm7', 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7')
+            shutil.copyfile('setup/recalculate/mt_0.parm7', 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7')
+        else:
+            shutil.copyfile('setup/parms_n_pdbs/parms/parms_windows/wt_0_og.parm7', 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7')
+            shutil.copyfile('setup/parms_n_pdbs/parms/parms_windows/mt_0_og.parm7', 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7')
 
         print("Creating intermediate parameter files...")
         # Create intermediate parameter files
@@ -228,13 +233,13 @@ class MutationReGbFe:
 
     def create_RE_n_equil_files(self):
         """Creates necessary files for hamiltonian replica exchange using the intermediate parameter files"""
-        # Get names of parameter files and order them in decreasing order for WT and concatenate increasing order of MT
+        # Get names of parameter files and order them in decreasing order
         def sortParmPaths_numerically(parm_path):
             return int(parm_path[3:-6])
         
         parm_files = [x for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows') if os.path.isfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}')]
-        parm_files_wt = [x for x in parm_files if x[:2]=='wt']
-        parm_files_mt = [x for x in parm_files if x[:2]=='mt']
+        parm_files_wt = [x for x in parm_files if x[:2]=='wt' and x != 'wt_0_og.parm7']
+        parm_files_mt = [x for x in parm_files if x[:2]=='mt' and x != 'mt_0_og.parm7']
         parm_files_wt.sort(key=sortParmPaths_numerically)
         parm_files_mt.sort(key=sortParmPaths_numerically)
         parm_files_wt_str = '\n'.join(parm_files_wt)
@@ -370,6 +375,7 @@ class MutationReGbFe:
         get_data_n_general.make_executable('FE/SASA/surface_area.sh')
         # Copy python scripts to calculate free energy differences
         shutil.copyfile('setup/python_scripts/FE_diff.py', 'FE/FE_diff.py')
+        shutil.copyfile('setup/python_scripts/fe_recalculate.py', './fe_recalculate.py')
         
         self.create_RE_n_equil_files()
 

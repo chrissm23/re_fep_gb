@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+import os
 
 import parmed
 
@@ -13,9 +14,9 @@ def create_og_parms(path_wt_pdb, path_mt_pdb):
     tmpl_path = 'setup/tmpls/leap_tmpls/gen_parm_pdb.tmpl'
 
     # Output paths
-    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
+    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0_og.parm7'
     wt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/wt_0.rst7'
-    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7'
+    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0_og.parm7'
     mt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/mt_0.rst7'
 
     # Dictionaries of fields to replace in template
@@ -47,9 +48,9 @@ def create_og_parms(path_wt_pdb, path_mt_pdb):
 def modify_og_GBRadius(modifiers, include_mut):
     """Modifies GB radius of atoms with type atom_types from parmed_object through either a multiplier or a set value"""
     # Leap generated parameter files
-    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
+    wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0_og.parm7'
     wt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/wt_0.rst7'
-    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0.parm7'
+    mt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/mt_0_og.parm7'
     mt_rst_path = 'setup/parms_n_pdbs/parms/rst_windows/mt_0.rst7'
 
     # Import to ParmEd
@@ -96,12 +97,14 @@ def modify_og_GBRadius(modifiers, include_mut):
                 proportion = -float(proportion)
                 Rgb_modify(mask, proportion)
 
-    parmed.tools.outparm(wt_parmed, wt_parm_path).execute()
+    wt_parm_path_new = 'setup/recalculate/wt_0.parm7'
+    mt_parm_path_new = 'setup/recalculate/mt_0.parm7'
+    parmed.tools.outparm(wt_parmed, wt_parm_path_new).execute()
     if include_mut:
-        parmed.tools.outparm(mt_parmed, mt_parm_path).execute()
+        parmed.tools.outparm(mt_parmed, mt_parm_path_new).execute()
 
 def get_new_LJParms(parmed_object, residue_mask, functions, windows):
-    """Creates new LJ atom types and outputs new AmberParm bojects with modified LJ  matrix"""
+    """Creates new LJ atom types and outputs new AmberParm bojects with modified LJ matrix"""
     residue_details = get_data_n_general.details_str_to_pd(str(parmed.tools.printDetails(parmed_object, f':{residue_mask}')))
     atom_numbers = residue_details['ATOM'].tolist() # Get atom numbers of mutated residues
 
@@ -132,7 +135,7 @@ def get_new_LJParms(parmed_object, residue_mask, functions, windows):
     masks_by_nonmutated_atomtype_str = [','.join(x) for x in masks_by_nonmutated_atomtype_str]
 
     # Deep copy parmed object and modify LJ matrix elements
-    new_parms = [parmed.amber.AmberParm.from_structure(parmed_object, copy=True) for i in range(len(windows))]
+    new_parms = [parmed.amber.AmberParm.from_structure(parmed_object, copy=True) for _ in range(len(windows))]
     #print(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
     new_ljmatrix = get_data_n_general.ljmatrix_str_to_pd(str(parmed.tools.printLJMatrix(parmed_object, f':{residue_mask}')))
     for i in range(len(windows)):
@@ -364,7 +367,7 @@ def get_CB_Parms(parms_list, residue_position, functional, windows):
                     compensate_residue(residue, parms_list[i], windows[i], end=None)
     return parms_list
 
-def create_intermediate_parms(functions, windows, residue_position, intermediate, include_mut):
+def create_intermediate_parms(functions, windows, residue_position, intermediate, include_mut, recalculation=False):
     """Creates intermediate parameter files using scaling of function on residues given by residue_position"""
     # Leap generated parameter files
     wt_parm_path = 'setup/parms_n_pdbs/parms/parms_windows/wt_0.parm7'
@@ -389,35 +392,64 @@ def create_intermediate_parms(functions, windows, residue_position, intermediate
     elif intermediate == 'ALA':
         residue_mask_nobackbone = residue_mask + '&!@CA,C,O,N,H,HA,CB,H1,H2,H3,OXT'
 
-    # Create parms with modified LJ matrix according to windows and functions
-    wt_parms_LJ = get_new_LJParms(wt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
-    if include_mut:
-        mt_parms_LJ = get_new_LJParms(mt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
+    if not recalculation:
+        # Create parms with modified LJ matrix according to windows and functions
+        wt_parms_LJ = get_new_LJParms(wt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
+        if include_mut:
+            mt_parms_LJ = get_new_LJParms(mt_parmed, residue_mask_nobackbone, functions[-2:], windows[1:])
 
-    # Change charge of mutating residues according to windows and functions
-    wt_parms_ele = get_new_Parms(wt_parms_LJ, residue_mask_nobackbone, 'Charge', functions[1], windows[1:], truncate=True)
-    if include_mut:
-        mt_parms_ele = get_new_Parms(mt_parms_LJ, residue_mask_nobackbone, 'Charge', functions[1], windows[1:], truncate=True)
+        # Change charge of mutating residues according to windows and functions
+        wt_parms_ele = get_new_Parms(wt_parms_LJ, residue_mask_nobackbone, 'Charge', functions[1], windows[1:], truncate=True)
+        if include_mut:
+            mt_parms_ele = get_new_Parms(mt_parms_LJ, residue_mask_nobackbone, 'Charge', functions[1], windows[1:], truncate=True)
+    else:
+        # Import already created parameter files
+        def sortParmPaths_numerically(parm_path):
+            return int(parm_path[3:-6])
+        
+        parm_files = [x for x in os.listdir('setup/parms_n_pdbs/parms/parms_windows') if os.path.isfile(f'setup/parms_n_pdbs/parms/parms_windows/{x}')]
+        parm_files_wt = [x for x in parm_files if x[:2]=='wt' if x != "wt_0_og.parm7"]
+        parm_files_wt.sort(key=sortParmPaths_numerically)
+        if include_mut:
+            parm_files_mt = [x for x in parm_files if x[:2]=='mt' if x != "mt_0_og.parm7"]
+            parm_files_mt.sort(key=sortParmPaths_numerically)
+
+        wt_parms_ele = [parmed.amber.AmberParm(f'setup/parms_n_pdbs/parms/parms_windows/{x}') for x in parm_files_wt]
+        if include_mut:
+            mt_parms_ele = [parmed.amber.AmberParm(f'setup/parms_n_pdbs/parms/parms_windows/{x}') for x in parm_files_mt]
 
     # Change GB Radius of mutating residues according to windws and functions
     wt_parms_GB = get_new_Parms(wt_parms_ele, residue_mask_nobackbone, 'GB Radius', functions[0], windows[1:], truncate=False)
     if include_mut:
         mt_parms_GB = get_new_Parms(mt_parms_ele, residue_mask_nobackbone, 'GB Radius', functions[0], windows[1:], truncate=False)
 
-    if intermediate == 'GLY':
-        wt_parms_CA = get_CA_Parms(wt_parms_GB, residue_position, functions[1], windows[1:])
-        if include_mut:
-            mt_parms_CA = get_CA_Parms(mt_parms_GB, residue_position, functions[1], windows[1:])
-    elif intermediate == 'ALA':
-        wt_parms_CA = get_CB_Parms(wt_parms_GB, residue_position, functions[1], windows[1:])
-        if include_mut:
-            mt_parms_CA = get_CB_Parms(mt_parms_GB, residue_position, functions[1], windows[1:])
+    if not recalculation:
+        if intermediate == 'GLY':
+            wt_parms_CA = get_CA_Parms(wt_parms_GB, residue_position, functions[1], windows[1:])
+            if include_mut:
+                mt_parms_CA = get_CA_Parms(mt_parms_GB, residue_position, functions[1], windows[1:])
+        elif intermediate == 'ALA':
+            wt_parms_CA = get_CB_Parms(wt_parms_GB, residue_position, functions[1], windows[1:])
+            if include_mut:
+                mt_parms_CA = get_CB_Parms(mt_parms_GB, residue_position, functions[1], windows[1:])
 
-    #print(parmed.tools.printDetails(wt_parmed, f':{residue_mask}&!@C,O,N,H'))
-    for i in range(len(wt_parms_CA)):
-        #print(parmed.tools.printDetails(wt_parms_CA[i], f':{residue_mask}&!@C,O,N,H'))
-        parmed.tools.HMassRepartition(wt_parms_CA[i]).execute()
-        parmed.tools.outparm(wt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
+    if not recalculation:
+        parms_to_write_wt = wt_parms_CA
+        parms_to_write_mt = mt_parms_CA
+    else:
+        parms_to_write_wt = wt_parms_GB
+        parms_to_write_mt = mt_parms_GB
+
+    for i in range(len(parms_to_write_wt)):
+        #print(parmed.tools.printDetails(parms_to_write_wt[i], f':{residue_mask}&!@C,O,N,H'))
+        parmed.tools.HMassRepartition(parms_to_write_wt[i]).execute()
+        if recalculation:
+            parmed.tools.outparm(parms_to_write_wt[i], f'setup/recalculate/wt_{i+1}.parm7').execute()
+        else:
+            parmed.tools.outparm(parms_to_write_wt[i], f'setup/parms_n_pdbs/parms/parms_windows/wt_{i+1}.parm7').execute()
         if include_mut:
-            parmed.tools.HMassRepartition(mt_parms_CA[i]).execute()
-            parmed.tools.outparm(mt_parms_CA[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()
+            parmed.tools.HMassRepartition(parms_to_write_mt[i]).execute()
+            if recalculation:
+                parmed.tools.outparm(parms_to_write_mt[i], f'setup/recalculate/mt_{i+1}.parm7').execute()
+            else:
+                parmed.tools.outparm(parms_to_write_mt[i], f'setup/parms_n_pdbs/parms/parms_windows/mt_{i+1}.parm7').execute()

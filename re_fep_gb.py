@@ -25,7 +25,11 @@ parms_dir = 'setup/parms_n_pdbs/parms/'
 pdbs_dir = 'setup/parms_n_pdbs/pdbs/'
 parms_windows_dir = 'setup/parms_n_pdbs/parms/parms_windows'
 rst_windows_dir = 'setup/parms_n_pdbs/parms/rst_windows'
-for x in [parms_n_pdbs_dir, parms_dir, pdbs_dir, parms_windows_dir, rst_windows_dir]:
+recalculate_dir = 'setup/recalculate/'
+parms_recalculate_wt_dir = 'setup/recalculate/WT'
+parms_recalculate_mt_dir = 'setup/recalculate/MT'
+for x in [parms_n_pdbs_dir, parms_dir, pdbs_dir, parms_windows_dir, rst_windows_dir, 
+    recalculate_dir, parms_recalculate_wt_dir, parms_recalculate_mt_dir]:
     if not os.path.exists(x):
         os.makedirs(x)
 
